@@ -355,9 +355,7 @@ elif page == "Charts":
                     st.success("✅ High R:R trade detected.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-import ccxt
 import pandas as pd
-import pandas_ta as ta
 import streamlit as st
 
 # --- AI SCANNER ENGINE ---
