@@ -366,12 +366,11 @@ import time
 
 def get_live_analysis(symbol, timeframe):
     try:
-        # 1. Setup Connection
+        import time
         interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
         tv_symbol = symbol.replace("/", "")
         handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
         
-        # 2. Fetch Data
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
@@ -381,14 +380,10 @@ def get_live_analysis(symbol, timeframe):
         high = ind.get("high") or cp
         low = ind.get("low") or cp
         diff = high - low
-        
         fib_618 = high - (diff * 0.618)
         fib_50 = high - (diff * 0.50)
         
-        # Determine if the zone is "Used"
-        # If the low of the current period is already above the 0.5, the retracement happened already.
         is_used = cp < fib_618 
-        
         if fib_618 <= cp <= fib_50 or fib_50 <= cp <= fib_618:
             fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
         elif is_used:
@@ -411,21 +406,27 @@ def get_live_analysis(symbol, timeframe):
         }
 
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
-        is_buy = summ['BUY'] > summ['SELL']
+        bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
+        
+        # --- NEW SIGNAL STRENGTH LOGIC ---
+        if bull_pct >= 75: strength = "STRONG LONG"
+        elif 55 <= bull_pct < 75: strength = "WEAK LONG"
+        elif 25 < bull_pct < 45: strength = "WEAK SHORT"
+        elif bull_pct <= 25: strength = "STRONG SHORT"
+        else: strength = "NEUTRAL"
 
-        # Simulate heavy lifting for the "Terminal" feel
-        time.sleep(1.5) 
+        time.sleep(1.2) # Processing delay
 
         return {
             "score": int((summ['BUY'] / total) * 10) if total > 0 else 5,
-            "bias": summ['RECOMMENDATION'].replace("_", " ") if summ.get('RECOMMENDATION') else "NEUTRAL",
-            "bull_pct": (summ['BUY'] / total) * 100 if total > 0 else 50,
+            "bias": strength, # Replaced raw recommendation with strength
+            "bull_pct": bull_pct,
             "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
             "signals": signals,
             "fib": fib_status,
             "entry": cp,
-            "sl": cp - ((ind.get('ATR') or (cp*0.02)) * 2) if is_buy else cp + ((ind.get('ATR') or (cp*0.02)) * 2),
-            "tp": ind.get("Pivot.M.Classic.R1") if is_buy else ind.get("Pivot.M.Classic.S1")
+            "sl": cp - ((ind.get('ATR') or (cp*0.02)) * 2) if bull_pct > 50 else cp + ((ind.get('ATR') or (cp*0.02)) * 2),
+            "tp": ind.get("Pivot.M.Classic.R1") if bull_pct > 50 else ind.get("Pivot.M.Classic.S1")
         }
     except Exception as e:
         return str(e)
@@ -520,46 +521,45 @@ if page == "Tools":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # 8. AI BOT SCANNER
-    with t_bot:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<p class="indicator-title">🤖 AI 10+1 Indicator Bot</p>', unsafe_allow_html=True)
+with t_bot:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    # Branding removed as requested
 
-        c_a, c_b = st.columns([2, 1])
-        bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
-        bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
+    c_a, c_b = st.columns([2, 1])
+    bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
+    bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
-        if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
-            # The spinner now feels more real because of the time.sleep(1.5)
-            with st.spinner(f"Terminal connecting to BYBIT... Crunching {bot_coin} {bot_tf} data..."):
-                res = get_live_analysis(bot_coin, bot_tf)
+    # Button renamed to "ANALYSE COIN"
+    if st.button("ANALYSE COIN", use_container_width=True):
+        with st.spinner("Analyzing Market Protocol..."):
+            res = get_live_analysis(bot_coin, bot_tf)
+            
+            if isinstance(res, dict):
+                st.divider()
                 
-                if isinstance(res, dict):
-                    st.divider()
-                    # Progress/Sentiment
-                    st.write(f"**Sentiment Engine: {res['bull_pct']:.1f}% Bullish**")
-                    st.progress(res['bull_pct'] / 100)
+                # Header showing Strength Signal
+                s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
+                st.markdown(f"<h2 style='text-align: center; color: {s_color};'>{res['bias']}</h2>", unsafe_allow_html=True)
+                
+                st.write(f"**Sentiment Engine: {res['bull_pct']:.1f}% Bullish**")
+                st.progress(res['bull_pct'] / 100)
 
-                    # 10 Indicator Grid
-                    st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
-                    col1, col2 = st.columns(2)
-                    items = list(res['signals'].items())
-                    for i, (name, sig) in enumerate(items):
-                        icon = "🟢" if "Bullish" in str(sig) or "Golden" in str(sig) or "Oversold" in str(sig) else "🔴" if "Bearish" in str(sig) or "Death" in str(sig) or "Overbought" in str(sig) else "⚪"
-                        if i < 5: col1.write(f"{icon} {name}: **{sig}**")
-                        else: col2.write(f"{icon} {name}: **{sig}**")
+                st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
+                col1, col2 = st.columns(2)
+                items = list(res['signals'].items())
+                for i, (name, sig) in enumerate(items):
+                    icon = "🟢" if "Bullish" in str(sig) or "Golden" in str(sig) or "Oversold" in str(sig) else "🔴" if "Bearish" in str(sig) or "Death" in str(sig) or "Overbought" in str(sig) else "⚪"
+                    if i < 5: col1.write(f"{icon} {name}: **{sig}**")
+                    else: col2.write(f"{icon} {name}: **{sig}**")
 
-                    # 11th Fibonacci Indicator
-                    st.markdown("---")
-                    f_col1, f_col2 = st.columns([1, 1])
-                    
-                    # Visual feedback for Fibonacci status
-                    f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
-                    f_col1.markdown(f"### 🎯 11. Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
-                    
-                    with f_col2:
-                        st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
+                st.markdown("---")
+                f_col1, f_col2 = st.columns([1, 1])
+                f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
+                f_col1.markdown(f"### 🎯 11. Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
+                
+                with f_col2:
+                    st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
+            else:
+                st.error(f"Scanner Error: {res}")
 
-                else:
-                    st.error(f"Scanner Error: {res}")
-
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
