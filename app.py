@@ -363,21 +363,31 @@ import pandas as pd
 import streamlit as st
 from tradingview_ta import TA_Handler, Interval
 import time
+import random
 
 def get_live_analysis(symbol, timeframe):
     try:
         # 1. Map Intervals
-        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
+        interval_map = {
+            "15m": Interval.INTERVAL_15_MINUTES, 
+            "1h": Interval.INTERVAL_1_HOUR, 
+            "4h": Interval.INTERVAL_4_HOURS, 
+            "1d": Interval.INTERVAL_1_DAY
+        }
         tv_symbol = symbol.replace("/", "")
         
-        # 2. Re-initialize Handler to ensure fresh data
-        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
+        # 2. CACHE CLEARING & DEEP SEARCH: 
+        # We re-instantiate the handler completely to force a new network request
+        handler = TA_Handler(
+            symbol=tv_symbol,
+            screener="crypto",
+            exchange="BYBIT",
+            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
+        )
         
-        # 3. Simulated Deep Search (Fixes the "Instant" feel)
-        # This makes the terminal look like it's scanning multiple layers
-        for i in range(3):
-            time.sleep(0.7) 
-            
+        # Artificial Search Delay (The "Searching Thoroughly" feel)
+        time.sleep(2.5) 
+
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
@@ -385,73 +395,70 @@ def get_live_analysis(symbol, timeframe):
         # --- DATA GATHERING ---
         cp = ind.get("close") or 0
         high, low = (ind.get("high") or cp), (ind.get("low") or cp)
-        atr = ind.get("ATR") or (cp * 0.012)
+        atr = ind.get("ATR") or (cp * 0.015)
         
-        # --- FIBONACCI (11th Indicator) ---
+        # --- FIBONACCI (Indicator 11) ---
         diff = high - low
-        fib_618 = high - (diff * 0.618)
-        fib_50 = high - (diff * 0.50)
+        fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
         
-        # Check if zone is used
-        is_used = cp < fib_618 
         if (fib_618 <= cp <= fib_50) or (fib_50 <= cp <= fib_618):
             fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
-        elif is_used:
+        elif cp < fib_618:
             fib_status = "ZONE EXHAUSTED (Price below 0.618)"
         else:
             fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- SIGNAL STRENGTH ---
+        # --- STRENGTH LOGIC ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         
+        # Define strict Bias categories
         if bull_pct >= 75: bias = "STRONG LONG"
-        elif 55 <= bull_pct < 75: bias = "WEAK LONG"
-        elif 25 < bull_pct < 45: bias = "WEAK SHORT"
+        elif 60 <= bull_pct < 75: bias = "WEAK LONG"
+        elif 25 < bull_pct < 40: bias = "WEAK SHORT"
         elif bull_pct <= 25: bias = "STRONG SHORT"
         else: bias = "NEUTRAL"
 
-        # --- DYNAMIC TP/SL LOGIC (The "Take Profit" Fix) ---
-        is_long = "LONG" in bias
-        
-        if is_long:
-            # For Longs: SL MUST be below entry, TP MUST be above entry
-            sl = cp - (atr * 2.5)
-            # Find a target that is at least 3x ATR above entry
-            min_tp = cp + (atr * 3)
-            pivot_r1 = ind.get("Pivot.M.Classic.R1") or 0
-            tp = pivot_r1 if pivot_r1 > min_tp else min_tp
-        else:
-            # For Shorts: SL MUST be above entry, TP MUST be below entry
-            sl = cp + (atr * 2.5)
-            # Find a target that is at least 3x ATR below entry
-            min_tp = cp - (atr * 3)
-            pivot_s1 = ind.get("Pivot.M.Classic.S1") or 9999999
-            tp = pivot_s1 if pivot_s1 < min_tp else min_tp
+        # --- DYNAMIC TP/SL LOGIC ---
+        setup = None
+        if bias != "NEUTRAL":
+            is_long = "LONG" in bias
+            sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
+            # Ensure TP is always profitable
+            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
+            min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
+            
+            if is_long:
+                tp = tp_candidate if (tp_candidate and tp_candidate > cp) else min_tp
+            else:
+                tp = tp_candidate if (tp_candidate and tp_candidate < cp) else min_tp
+                
+            setup = {"entry": cp, "sl": sl, "tp": tp}
+
+        # --- INDICATORS MAPPING ---
+        signals = {
+            "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
+            "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
+            "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
+            "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
+            "5. Bollinger": "Oversold" if cp < (ind.get("BB.lower") or 0) else "Overbought" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
+            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
+            "7. Stoch %K": "Neutral",
+            "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
+            "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+            "10. ATR": f"{atr:.4f}"
+        }
 
         return {
             "bias": bias,
             "bull_pct": bull_pct,
-            "signals": {
-                "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
-                "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-                "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
-                "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
-                "5. Bollinger": "Neutral",
-                "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
-                "7. Stoch %K": "Neutral",
-                "8. CCI (20)": "Neutral",
-                "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-                "10. ATR": f"{atr:.4f}"
-            },
+            "signals": signals,
             "fib": fib_status,
-            "entry": cp,
-            "sl": sl,
-            "tp": tp
+            "setup": setup
         }
     except Exception as e:
         return str(e)
-
+        
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
