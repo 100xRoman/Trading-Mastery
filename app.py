@@ -373,26 +373,37 @@ def get_live_analysis(symbol, timeframe):
         ind = analysis.indicators
         summ = analysis.summary
 
-        # --- DATA GATHERING ---
+        # --- PRICE DATA ---
         cp = ind.get("close") or 0
+        # Use Pivot Points or Weekly High/Low for a stronger Fibonacci anchor
+        high = ind.get("Pivot.M.Classic.R2") or ind.get("high") or cp
+        low = ind.get("Pivot.M.Classic.S2") or ind.get("low") or cp
         atr = ind.get("ATR") or (cp * 0.02)
-        ma20, ma50 = (ind.get("SMA20") or 0), (ind.get("SMA50") or 0)
-        high, low = (ind.get("high") or cp), (ind.get("low") or cp)
         
-        # --- FIBONACCI (11th Indicator) ---
+        # --- FIBONACCI CALCULATION ---
         diff = high - low
-        fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        is_fib = "YES (Golden Zone)" if (fib_618 <= cp <= fib_50 or fib_50 <= cp <= fib_618) else "Searching..."
+        fib_618 = high - (diff * 0.618)
+        fib_50 = high - (diff * 0.50)
+        
+        # Define a small "buffer" (0.1%) so you don't miss the zone by a few cents
+        buffer = cp * 0.001 
+        
+        if (fib_618 - buffer) <= cp <= (fib_50 + buffer):
+            is_fib = "YES (Golden Zone)"
+        elif (fib_618 - (buffer * 5)) <= cp <= (fib_50 + (buffer * 5)):
+            is_fib = "NEAR (Watching)"
+        else:
+            is_fib = "Searching..."
 
-        # --- THE TOP 10 INDICATORS ---
+        # --- 10 INDICATOR SIGNALS ---
         signals = {
             "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
             "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-            "3. MA 20/50 Cross": "Golden Cross" if ma20 > ma50 else "Death Cross",
+            "3. MA 20/50 Cross": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
             "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
             "5. Bollinger Bands": "Bullish" if cp < (ind.get("BB.lower") or 0) else "Bearish" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
             "6. ADX (Trend)": "Strong Trend" if (ind.get("ADX") or 0) > 25 else "Weak/Sideways",
-            "7. Stoch %K": "Oversold (Buy)" if (ind.get("Stoch.K") or 50) < 20 else "Overbought (Sell)" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
+            "7. Stoch %K": "Oversold" if (ind.get("Stoch.K") or 50) < 20 else "Overbought" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
             "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
             "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
             "10. ATR Volatility": f"{atr:.4f}"
@@ -411,8 +422,7 @@ def get_live_analysis(symbol, timeframe):
             "entry": cp,
             "sl": cp - (atr * 2) if is_buy else cp + (atr * 2),
             "tp": ind.get("Pivot.M.Classic.R1") if is_buy else ind.get("Pivot.M.Classic.S1"),
-            "s_zone": f"{ind.get('Pivot.M.Classic.S1'):,.2f}",
-            "r_zone": f"{ind.get('Pivot.M.Classic.R1'):,.2f}"
+            "fib_range": f"{min(fib_618, fib_50):,.2f} - {max(fib_618, fib_50):,.2f}"
         }
     except Exception as e:
         return str(e)
