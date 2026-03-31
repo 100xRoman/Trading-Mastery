@@ -357,6 +357,8 @@ elif page == "Charts":
 
 import pandas as pd
 import streamlit as st
+import ccxt
+import pandas_ta as ta
 
 # --- AI SCANNER ENGINE ---
 def get_live_analysis(symbol, timeframe):
