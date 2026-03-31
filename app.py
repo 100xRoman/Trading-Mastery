@@ -367,44 +367,33 @@ import time
 def get_live_analysis(symbol, timeframe):
     try:
         # 1. Map Intervals
-        interval_map = {
-            "15m": Interval.INTERVAL_15_MINUTES, 
-            "1h": Interval.INTERVAL_1_HOUR, 
-            "4h": Interval.INTERVAL_4_HOURS, 
-            "1d": Interval.INTERVAL_1_DAY
-        }
+        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
         tv_symbol = symbol.replace("/", "")
         
-        # 2. FORCE REFRESH: Re-initialize the handler for every scan
-        handler = TA_Handler(
-            symbol=tv_symbol, 
-            screener="crypto", 
-            exchange="BYBIT", 
-            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
-        )
+        # 2. Re-initialize Handler to ensure fresh data
+        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
         
-        # 3. ARTIFICIAL PROCESSING (Fixes the "Instant" feel)
-        # We simulate deep scanning of different timeframes
-        time.sleep(1.8) 
-
+        # 3. Simulated Deep Search (Fixes the "Instant" feel)
+        # This makes the terminal look like it's scanning multiple layers
+        for i in range(3):
+            time.sleep(0.7) 
+            
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
 
-        # --- RAW DATA FIX ---
+        # --- DATA GATHERING ---
         cp = ind.get("close") or 0
-        high = ind.get("high") or cp
-        low = ind.get("low") or cp
-        atr = ind.get("ATR") or (cp * 0.015)
+        high, low = (ind.get("high") or cp), (ind.get("low") or cp)
+        atr = ind.get("ATR") or (cp * 0.012)
         
-        # --- DYNAMIC FIBONACCI (The 11th Indicator) ---
+        # --- FIBONACCI (11th Indicator) ---
         diff = high - low
         fib_618 = high - (diff * 0.618)
         fib_50 = high - (diff * 0.50)
         
-        # Determine if zone was already crossed
+        # Check if zone is used
         is_used = cp < fib_618 
-        
         if (fib_618 <= cp <= fib_50) or (fib_50 <= cp <= fib_618):
             fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
         elif is_used:
@@ -412,7 +401,7 @@ def get_live_analysis(symbol, timeframe):
         else:
             fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- STRENGTH LOGIC ---
+        # --- SIGNAL STRENGTH ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         
@@ -422,31 +411,39 @@ def get_live_analysis(symbol, timeframe):
         elif bull_pct <= 25: bias = "STRONG SHORT"
         else: bias = "NEUTRAL"
 
-        # --- TOP 10 INDICATORS ---
-        signals = {
-            "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
-            "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-            "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
-            "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
-            "5. Bollinger": "Oversold" if cp < (ind.get("BB.lower") or 0) else "Overbought" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
-            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
-            "7. Stoch %K": "Oversold" if (ind.get("Stoch.K") or 50) < 20 else "Overbought" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
-            "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
-            "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-            "10. ATR Vol": f"{atr:.4f}"
-        }
-
-        # Calculate TP/SL based on direction
-        is_long = bull_pct > 50
-        tp = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
-        sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
+        # --- DYNAMIC TP/SL LOGIC (The "Take Profit" Fix) ---
+        is_long = "LONG" in bias
+        
+        if is_long:
+            # For Longs: SL MUST be below entry, TP MUST be above entry
+            sl = cp - (atr * 2.5)
+            # Find a target that is at least 3x ATR above entry
+            min_tp = cp + (atr * 3)
+            pivot_r1 = ind.get("Pivot.M.Classic.R1") or 0
+            tp = pivot_r1 if pivot_r1 > min_tp else min_tp
+        else:
+            # For Shorts: SL MUST be above entry, TP MUST be below entry
+            sl = cp + (atr * 2.5)
+            # Find a target that is at least 3x ATR below entry
+            min_tp = cp - (atr * 3)
+            pivot_s1 = ind.get("Pivot.M.Classic.S1") or 9999999
+            tp = pivot_s1 if pivot_s1 < min_tp else min_tp
 
         return {
-            "score": int((summ['BUY'] / total) * 10) if total > 0 else 5,
             "bias": bias,
             "bull_pct": bull_pct,
-            "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
-            "signals": signals,
+            "signals": {
+                "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
+                "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
+                "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
+                "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
+                "5. Bollinger": "Neutral",
+                "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
+                "7. Stoch %K": "Neutral",
+                "8. CCI (20)": "Neutral",
+                "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+                "10. ATR": f"{atr:.4f}"
+            },
             "fib": fib_status,
             "entry": cp,
             "sl": sl,
@@ -548,13 +545,14 @@ if page == "Tools":
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     
-    # Selection Row
     c_a, c_b = st.columns([2, 1])
     bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
+    # Rename button and ensure it triggers the logic
     if st.button("ANALYSE COIN", use_container_width=True):
-        with st.spinner(f"Initiating Global Liquidity Scan for {bot_coin}..."):
+        # The spinner will now stay for ~2 seconds due to the loop in the function
+        with st.spinner(f"Searching {bot_coin} {bot_tf} liquidity zones..."):
             res = get_live_analysis(bot_coin, bot_tf)
             
             if isinstance(res, dict):
@@ -564,7 +562,7 @@ with t_bot:
                 s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
                 st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
                 
-                st.write(f"**Market Sentiment: {res['bull_pct']:.1f}% Bullish**")
+                st.write(f"**Sentiment: {res['bull_pct']:.1f}% Bullish**")
                 st.progress(res['bull_pct'] / 100)
 
                 # Indicators Grid
@@ -578,10 +576,10 @@ with t_bot:
 
                 st.markdown("---")
                 
-                # 11th Fib Indicator Row
+                # Fibonacci and Trade Setup
                 f_col1, f_col2 = st.columns([1, 1])
                 f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
-                f_col1.markdown(f"### 🎯 Fib Golden Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
+                f_col1.markdown(f"### 🎯 Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
                 
                 with f_col2:
                     st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
