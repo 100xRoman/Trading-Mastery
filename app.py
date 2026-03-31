@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 import feedparser
-import ccxt
 import streamlit.components.v1 as components
 
 # --- TERMINAL CONFIG ---
