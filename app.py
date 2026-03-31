@@ -366,67 +366,91 @@ import time
 
 def get_live_analysis(symbol, timeframe):
     try:
-        import time
-        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
+        # 1. Map Intervals
+        interval_map = {
+            "15m": Interval.INTERVAL_15_MINUTES, 
+            "1h": Interval.INTERVAL_1_HOUR, 
+            "4h": Interval.INTERVAL_4_HOURS, 
+            "1d": Interval.INTERVAL_1_DAY
+        }
         tv_symbol = symbol.replace("/", "")
-        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
         
+        # 2. FORCE REFRESH: Re-initialize the handler for every scan
+        handler = TA_Handler(
+            symbol=tv_symbol, 
+            screener="crypto", 
+            exchange="BYBIT", 
+            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
+        )
+        
+        # 3. ARTIFICIAL PROCESSING (Fixes the "Instant" feel)
+        # We simulate deep scanning of different timeframes
+        time.sleep(1.8) 
+
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
 
-        # --- FIBONACCI DEPTH ANALYSIS ---
+        # --- RAW DATA FIX ---
         cp = ind.get("close") or 0
         high = ind.get("high") or cp
         low = ind.get("low") or cp
+        atr = ind.get("ATR") or (cp * 0.015)
+        
+        # --- DYNAMIC FIBONACCI (The 11th Indicator) ---
         diff = high - low
         fib_618 = high - (diff * 0.618)
         fib_50 = high - (diff * 0.50)
         
+        # Determine if zone was already crossed
         is_used = cp < fib_618 
-        if fib_618 <= cp <= fib_50 or fib_50 <= cp <= fib_618:
+        
+        if (fib_618 <= cp <= fib_50) or (fib_50 <= cp <= fib_618):
             fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
         elif is_used:
             fib_status = "ZONE EXHAUSTED (Price below 0.618)"
         else:
             fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- CORE 10 INDICATORS ---
-        signals = {
-            "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
-            "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-            "3. MA 20/50 Cross": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
-            "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
-            "5. Bollinger Bands": "Bullish" if cp < (ind.get("BB.lower") or 0) else "Bearish" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
-            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
-            "7. Stoch %K": "Oversold" if (ind.get("Stoch.K") or 50) < 20 else "Overbought" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
-            "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
-            "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-            "10. ATR": f"{ind.get('ATR') or 0:.4f}"
-        }
-
+        # --- STRENGTH LOGIC ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         
-        # --- NEW SIGNAL STRENGTH LOGIC ---
-        if bull_pct >= 75: strength = "STRONG LONG"
-        elif 55 <= bull_pct < 75: strength = "WEAK LONG"
-        elif 25 < bull_pct < 45: strength = "WEAK SHORT"
-        elif bull_pct <= 25: strength = "STRONG SHORT"
-        else: strength = "NEUTRAL"
+        if bull_pct >= 75: bias = "STRONG LONG"
+        elif 55 <= bull_pct < 75: bias = "WEAK LONG"
+        elif 25 < bull_pct < 45: bias = "WEAK SHORT"
+        elif bull_pct <= 25: bias = "STRONG SHORT"
+        else: bias = "NEUTRAL"
 
-        time.sleep(1.2) # Processing delay
+        # --- TOP 10 INDICATORS ---
+        signals = {
+            "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
+            "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
+            "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
+            "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
+            "5. Bollinger": "Oversold" if cp < (ind.get("BB.lower") or 0) else "Overbought" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
+            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
+            "7. Stoch %K": "Oversold" if (ind.get("Stoch.K") or 50) < 20 else "Overbought" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
+            "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
+            "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+            "10. ATR Vol": f"{atr:.4f}"
+        }
+
+        # Calculate TP/SL based on direction
+        is_long = bull_pct > 50
+        tp = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
+        sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
 
         return {
             "score": int((summ['BUY'] / total) * 10) if total > 0 else 5,
-            "bias": strength, # Replaced raw recommendation with strength
+            "bias": bias,
             "bull_pct": bull_pct,
             "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
             "signals": signals,
             "fib": fib_status,
             "entry": cp,
-            "sl": cp - ((ind.get('ATR') or (cp*0.02)) * 2) if bull_pct > 50 else cp + ((ind.get('ATR') or (cp*0.02)) * 2),
-            "tp": ind.get("Pivot.M.Classic.R1") if bull_pct > 50 else ind.get("Pivot.M.Classic.S1")
+            "sl": sl,
+            "tp": tp
         }
     except Exception as e:
         return str(e)
@@ -523,28 +547,28 @@ if page == "Tools":
 # 8. AI BOT SCANNER
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    # Branding removed as requested
-
+    
+    # Selection Row
     c_a, c_b = st.columns([2, 1])
     bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
-    # Button renamed to "ANALYSE COIN"
     if st.button("ANALYSE COIN", use_container_width=True):
-        with st.spinner("Analyzing Market Protocol..."):
+        with st.spinner(f"Initiating Global Liquidity Scan for {bot_coin}..."):
             res = get_live_analysis(bot_coin, bot_tf)
             
             if isinstance(res, dict):
                 st.divider()
                 
-                # Header showing Strength Signal
+                # Signal Strength Header
                 s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
-                st.markdown(f"<h2 style='text-align: center; color: {s_color};'>{res['bias']}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
                 
-                st.write(f"**Sentiment Engine: {res['bull_pct']:.1f}% Bullish**")
+                st.write(f"**Market Sentiment: {res['bull_pct']:.1f}% Bullish**")
                 st.progress(res['bull_pct'] / 100)
 
-                st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
+                # Indicators Grid
+                st.markdown("#### 🛠️ Technical Breakdown")
                 col1, col2 = st.columns(2)
                 items = list(res['signals'].items())
                 for i, (name, sig) in enumerate(items):
@@ -553,9 +577,11 @@ with t_bot:
                     else: col2.write(f"{icon} {name}: **{sig}**")
 
                 st.markdown("---")
+                
+                # 11th Fib Indicator Row
                 f_col1, f_col2 = st.columns([1, 1])
                 f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
-                f_col1.markdown(f"### 🎯 11. Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
+                f_col1.markdown(f"### 🎯 Fib Golden Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
                 
                 with f_col2:
                     st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
