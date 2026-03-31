@@ -376,8 +376,7 @@ def get_live_analysis(symbol, timeframe):
         }
         tv_symbol = symbol.replace("/", "")
         
-        # 2. CACHE CLEARING & DEEP SEARCH: 
-        # We re-instantiate the handler completely to force a new network request
+        # 2. FORCE CACHE CLEAR: Re-instantiate handler every time
         handler = TA_Handler(
             symbol=tv_symbol,
             screener="crypto",
@@ -385,8 +384,8 @@ def get_live_analysis(symbol, timeframe):
             interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
         )
         
-        # Artificial Search Delay (The "Searching Thoroughly" feel)
-        time.sleep(2.5) 
+        # Simulated Deep Search Delay
+        time.sleep(2.0) 
 
         analysis = handler.get_analysis()
         ind = analysis.indicators
@@ -412,20 +411,20 @@ def get_live_analysis(symbol, timeframe):
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         
-        # Define strict Bias categories
-        if bull_pct >= 75: bias = "STRONG LONG"
-        elif 60 <= bull_pct < 75: bias = "WEAK LONG"
-        elif 25 < bull_pct < 40: bias = "WEAK SHORT"
-        elif bull_pct <= 25: bias = "STRONG SHORT"
+        if bull_pct >= 70: bias = "STRONG LONG"
+        elif 55 <= bull_pct < 70: bias = "WEAK LONG"
+        elif 30 < bull_pct < 45: bias = "WEAK SHORT"
+        elif bull_pct <= 30: bias = "STRONG SHORT"
         else: bias = "NEUTRAL"
 
-        # --- DYNAMIC TP/SL LOGIC ---
+        # --- TRADE SETUP LOGIC (The Fix for your Error) ---
         setup = None
         if bias != "NEUTRAL":
             is_long = "LONG" in bias
             sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
-            # Ensure TP is always profitable
-            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
+            
+            # Ensure TP is always profitable relative to Entry
+            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.get.S1")
             min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
             
             if is_long:
@@ -435,30 +434,28 @@ def get_live_analysis(symbol, timeframe):
                 
             setup = {"entry": cp, "sl": sl, "tp": tp}
 
-        # --- INDICATORS MAPPING ---
-        signals = {
-            "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
-            "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-            "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
-            "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
-            "5. Bollinger": "Oversold" if cp < (ind.get("BB.lower") or 0) else "Overbought" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
-            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
-            "7. Stoch %K": "Neutral",
-            "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
-            "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-            "10. ATR": f"{atr:.4f}"
-        }
-
         return {
             "bias": bias,
             "bull_pct": bull_pct,
-            "signals": signals,
+            "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
+            "signals": {
+                "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
+                "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
+                "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
+                "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
+                "5. Bollinger": "Neutral",
+                "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
+                "7. Stoch %K": "Neutral",
+                "8. CCI (20)": "Neutral",
+                "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+                "10. ATR": f"{atr:.4f}"
+            },
             "fib": fib_status,
             "setup": setup
         }
     except Exception as e:
         return str(e)
-        
+
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
@@ -551,46 +548,39 @@ if page == "Tools":
 # 8. AI BOT SCANNER
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    
+    st.markdown('<p class="indicator-title">🤖 AI 10+1 Indicator Bot</p>', unsafe_allow_html=True)
+
     c_a, c_b = st.columns([2, 1])
     bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
-    # Rename button and ensure it triggers the logic
-    if st.button("ANALYSE COIN", use_container_width=True):
-        # The spinner will now stay for ~2 seconds due to the loop in the function
-        with st.spinner(f"Searching {bot_coin} {bot_tf} liquidity zones..."):
+    if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
+        with st.spinner("Searching and clearing cache..."):
             res = get_live_analysis(bot_coin, bot_tf)
             
             if isinstance(res, dict):
                 st.divider()
-                
-                # Signal Strength Header
-                s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
-                st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
-                
-                st.write(f"**Sentiment: {res['bull_pct']:.1f}% Bullish**")
+                st.write(f"**Bullish: {res['bull_pct']:.1f}% | Bearish: {res['bear_pct']:.1f}%**")
                 st.progress(res['bull_pct'] / 100)
 
-                # Indicators Grid
-                st.markdown("#### 🛠️ Technical Breakdown")
+                st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
                 col1, col2 = st.columns(2)
                 items = list(res['signals'].items())
                 for i, (name, sig) in enumerate(items):
-                    icon = "🟢" if "Bullish" in str(sig) or "Golden" in str(sig) or "Oversold" in str(sig) else "🔴" if "Bearish" in str(sig) or "Death" in str(sig) or "Overbought" in str(sig) else "⚪"
+                    icon = "🟢" if "Bullish" in str(sig) or "Golden" in str(sig) else "🔴" if "Bearish" in str(sig) or "Death" in str(sig) else "⚪"
                     if i < 5: col1.write(f"{icon} {name}: **{sig}**")
                     else: col2.write(f"{icon} {name}: **{sig}**")
 
                 st.markdown("---")
+                f_col1, f_col2 = st.columns([1, 2])
+                f_col1.metric("11. Fibonacci Zone", res['fib'])
                 
-                # Fibonacci and Trade Setup
-                f_col1, f_col2 = st.columns([1, 1])
-                f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
-                f_col1.markdown(f"### 🎯 Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
-                
+                # FIX: Check if setup exists before accessing entry/sl/tp
                 with f_col2:
-                    st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
+                    if res['setup']:
+                        st.success(f"**Execution Setup**\n\nEntry: `{res['setup']['entry']:,.2f}` | SL: `{res['setup']['sl']:,.2f}` | TP: `{res['setup']['tp']:,.2f}`")
+                    else:
+                        st.warning("⚠️ No Trade Setup: Market bias is currently Neutral.")
             else:
                 st.error(f"Scanner Error: {res}")
-
     st.markdown('</div>', unsafe_allow_html=True)
