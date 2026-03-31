@@ -362,55 +362,59 @@ import ccxt
 import pandas as pd
 import streamlit as st
 from tradingview_ta import TA_Handler, Interval
+import time
 
 def get_live_analysis(symbol, timeframe):
     try:
+        # 1. Setup Connection
         interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
         tv_symbol = symbol.replace("/", "")
-        
         handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
+        
+        # 2. Fetch Data
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
 
-        # --- PRICE DATA ---
+        # --- FIBONACCI DEPTH ANALYSIS ---
         cp = ind.get("close") or 0
-        # Use Pivot Points or Weekly High/Low for a stronger Fibonacci anchor
-        high = ind.get("Pivot.M.Classic.R2") or ind.get("high") or cp
-        low = ind.get("Pivot.M.Classic.S2") or ind.get("low") or cp
-        atr = ind.get("ATR") or (cp * 0.02)
-        
-        # --- FIBONACCI CALCULATION ---
+        high = ind.get("high") or cp
+        low = ind.get("low") or cp
         diff = high - low
+        
         fib_618 = high - (diff * 0.618)
         fib_50 = high - (diff * 0.50)
         
-        # Define a small "buffer" (0.1%) so you don't miss the zone by a few cents
-        buffer = cp * 0.001 
+        # Determine if the zone is "Used"
+        # If the low of the current period is already above the 0.5, the retracement happened already.
+        is_used = cp < fib_618 
         
-        if (fib_618 - buffer) <= cp <= (fib_50 + buffer):
-            is_fib = "YES (Golden Zone)"
-        elif (fib_618 - (buffer * 5)) <= cp <= (fib_50 + (buffer * 5)):
-            is_fib = "NEAR (Watching)"
+        if fib_618 <= cp <= fib_50 or fib_50 <= cp <= fib_618:
+            fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
+        elif is_used:
+            fib_status = "ZONE EXHAUSTED (Price below 0.618)"
         else:
-            is_fib = "Searching..."
+            fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- 10 INDICATOR SIGNALS ---
+        # --- CORE 10 INDICATORS ---
         signals = {
             "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
             "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
             "3. MA 20/50 Cross": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
             "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
             "5. Bollinger Bands": "Bullish" if cp < (ind.get("BB.lower") or 0) else "Bearish" if cp > (ind.get("BB.upper") or 999999) else "Neutral",
-            "6. ADX (Trend)": "Strong Trend" if (ind.get("ADX") or 0) > 25 else "Weak/Sideways",
+            "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
             "7. Stoch %K": "Oversold" if (ind.get("Stoch.K") or 50) < 20 else "Overbought" if (ind.get("Stoch.K") or 50) > 80 else "Neutral",
             "8. CCI (20)": "Bullish" if (ind.get("CCI20") or 0) < -100 else "Bearish" if (ind.get("CCI20") or 0) > 100 else "Neutral",
             "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-            "10. ATR Volatility": f"{atr:.4f}"
+            "10. ATR": f"{ind.get('ATR') or 0:.4f}"
         }
 
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         is_buy = summ['BUY'] > summ['SELL']
+
+        # Simulate heavy lifting for the "Terminal" feel
+        time.sleep(1.5) 
 
         return {
             "score": int((summ['BUY'] / total) * 10) if total > 0 else 5,
@@ -418,11 +422,10 @@ def get_live_analysis(symbol, timeframe):
             "bull_pct": (summ['BUY'] / total) * 100 if total > 0 else 50,
             "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
             "signals": signals,
-            "fib": is_fib,
+            "fib": fib_status,
             "entry": cp,
-            "sl": cp - (atr * 2) if is_buy else cp + (atr * 2),
-            "tp": ind.get("Pivot.M.Classic.R1") if is_buy else ind.get("Pivot.M.Classic.S1"),
-            "fib_range": f"{min(fib_618, fib_50):,.2f} - {max(fib_618, fib_50):,.2f}"
+            "sl": cp - ((ind.get('ATR') or (cp*0.02)) * 2) if is_buy else cp + ((ind.get('ATR') or (cp*0.02)) * 2),
+            "tp": ind.get("Pivot.M.Classic.R1") if is_buy else ind.get("Pivot.M.Classic.S1")
         }
     except Exception as e:
         return str(e)
@@ -526,16 +529,17 @@ if page == "Tools":
         bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
         if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
-            with st.spinner("Crunching 11 Indicators..."):
+            # The spinner now feels more real because of the time.sleep(1.5)
+            with st.spinner(f"Terminal connecting to BYBIT... Crunching {bot_coin} {bot_tf} data..."):
                 res = get_live_analysis(bot_coin, bot_tf)
                 
                 if isinstance(res, dict):
                     st.divider()
-                    # Sentiment Bar
-                    st.write(f"**Bullish: {res['bull_pct']:.1f}% | Bearish: {res['bear_pct']:.1f}%**")
+                    # Progress/Sentiment
+                    st.write(f"**Sentiment Engine: {res['bull_pct']:.1f}% Bullish**")
                     st.progress(res['bull_pct'] / 100)
 
-                    # --- GRID: 10 CORE INDICATORS ---
+                    # 10 Indicator Grid
                     st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
                     col1, col2 = st.columns(2)
                     items = list(res['signals'].items())
@@ -544,15 +548,16 @@ if page == "Tools":
                         if i < 5: col1.write(f"{icon} {name}: **{sig}**")
                         else: col2.write(f"{icon} {name}: **{sig}**")
 
-                    # --- THE 11TH INDICATOR: FIBONACCI ---
+                    # 11th Fibonacci Indicator
                     st.markdown("---")
-                    f_col1, f_col2 = st.columns([1, 2])
-                    f_icon = "🎯" if "YES" in res['fib'] else "🔍"
-                    f_col1.metric("11. Fibonacci Zone", res['fib'], delta=None)
+                    f_col1, f_col2 = st.columns([1, 1])
                     
-                    # Trade Setup Box
+                    # Visual feedback for Fibonacci status
+                    f_color = "green" if "ACTIVE" in res['fib'] else "orange" if "PENDING" in res['fib'] else "red"
+                    f_col1.markdown(f"### 🎯 11. Fib Zone\n**<span style='color:{f_color}'>{res['fib']}</span>**", unsafe_allow_html=True)
+                    
                     with f_col2:
-                        st.success(f"**Trade Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`\n\n**Leverage: 20x or above**")
+                        st.success(f"**Execution Setup**\n\nEntry: `{res['entry']:,.2f}` | SL: `{res['sl']:,.2f}` | TP: `{res['tp']:,.2f}`")
 
                 else:
                     st.error(f"Scanner Error: {res}")
