@@ -3,6 +3,9 @@ import pandas as pd
 import os
 import feedparser
 import streamlit.components.v1 as components
+import ccxt
+import pandas_ta as ta
+import math
 
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Trading Mastery", page_icon="📈", layout="wide")
