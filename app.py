@@ -376,7 +376,7 @@ def get_live_analysis(symbol, timeframe):
         }
         tv_symbol = symbol.replace("/", "")
         
-        # 2. FORCE CACHE CLEAR: Re-instantiate handler every time
+        # 2. FORCE REFRESH: Re-declare handler inside function to bypass cache
         handler = TA_Handler(
             symbol=tv_symbol,
             screener="crypto",
@@ -384,8 +384,8 @@ def get_live_analysis(symbol, timeframe):
             interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
         )
         
-        # Simulated Deep Search Delay
-        time.sleep(2.0) 
+        # 3. Simulated Deep Search Delay
+        time.sleep(2.5) 
 
         analysis = handler.get_analysis()
         ind = analysis.indicators
@@ -407,24 +407,26 @@ def get_live_analysis(symbol, timeframe):
         else:
             fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- STRENGTH LOGIC ---
+        # --- SIGNAL STRENGTH & BIAS ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
+        bear_pct = (summ['SELL'] / total) * 100 if total > 0 else 50
         
-        if bull_pct >= 70: bias = "STRONG LONG"
-        elif 55 <= bull_pct < 70: bias = "WEAK LONG"
-        elif 30 < bull_pct < 45: bias = "WEAK SHORT"
-        elif bull_pct <= 30: bias = "STRONG SHORT"
+        # Define strict thresholds for a trade setup
+        if bull_pct >= 75: bias = "STRONG LONG"
+        elif 60 <= bull_pct < 75: bias = "WEAK LONG"
+        elif 25 < bull_pct < 40: bias = "WEAK SHORT"
+        elif bull_pct <= 25: bias = "STRONG SHORT"
         else: bias = "NEUTRAL"
 
-        # --- TRADE SETUP LOGIC (The Fix for your Error) ---
+        # --- DYNAMIC TRADE SETUP (Neutral Check) ---
         setup = None
         if bias != "NEUTRAL":
             is_long = "LONG" in bias
             sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
             
-            # Ensure TP is always profitable relative to Entry
-            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.get.S1")
+            # Ensure TP is on the correct side of entry
+            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
             min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
             
             if is_long:
@@ -437,7 +439,7 @@ def get_live_analysis(symbol, timeframe):
         return {
             "bias": bias,
             "bull_pct": bull_pct,
-            "bear_pct": (summ['SELL'] / total) * 100 if total > 0 else 50,
+            "bear_pct": bear_pct,
             "signals": {
                 "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
                 "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
@@ -447,7 +449,7 @@ def get_live_analysis(symbol, timeframe):
                 "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
                 "7. Stoch %K": "Neutral",
                 "8. CCI (20)": "Neutral",
-                "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+                "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
                 "10. ATR": f"{atr:.4f}"
             },
             "fib": fib_status,
@@ -455,7 +457,7 @@ def get_live_analysis(symbol, timeframe):
         }
     except Exception as e:
         return str(e)
-
+        
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
@@ -555,11 +557,17 @@ with t_bot:
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
     if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
-        with st.spinner("Searching and clearing cache..."):
+        # Spinner stays active during the forced delay
+        with st.spinner(f"Force-clearing cache and searching {bot_coin}..."):
             res = get_live_analysis(bot_coin, bot_tf)
             
             if isinstance(res, dict):
                 st.divider()
+                
+                # Dynamic Header color based on bias
+                s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
+                st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
+                
                 st.write(f"**Bullish: {res['bull_pct']:.1f}% | Bearish: {res['bear_pct']:.1f}%**")
                 st.progress(res['bull_pct'] / 100)
 
