@@ -366,82 +366,250 @@ import time
 import random
 from datetime import datetime, timedelta
 
-import time
-from datetime import datetime, timedelta
-from tradingview_ta import TA_Handler, Interval
+def get_titan_apex_ultra(symbol, target_date): 
+ try: 
+    tv_symbol = symbol.replace("/", "")
+# =========================
+# 🧠 GLOBAL ML STORAGE
+# =========================
+ml_dataset = []
+ml_model = None
 
-def get_titan_apex_ultra(symbol, target_date):
+
+# =========================
+# 🔥 CORE STRATEGY
+# =========================
+def titan_edge_engine(symbol, data_row, higher_tf_bias=None):
     try:
-        tv_symbol = symbol.replace("/", "")
-        # Multi-Timeframe Handlers
-        h15 = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_15_MINUTES)
-        h1h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_1_HOUR)
-        h4h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_4_HOURS)
+        cp = data_row["close"]
+        open_p = data_row["open"]
+        high = data_row["high"]
+        low = data_row["low"]
 
-        # --- THE 3-MINUTE "DEEP SCAN" SEQUENCE ---
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        stages = [
-            (0, 20, "📡 **Scanning 10 Core Indicators...**", 1.2),
-            (20, 40, "🕯️ **Analyzing Candlestick Patterns & Price Action...**", 1.5),
-            (40, 60, "🧱 **Mapping Liquidity Walls & Order Flow...**", 1.5),
-            (60, 85, "📐 **Calculating Fibonacci Extension Clusters...**", 1.8),
-            (85, 101, "⚖️ **Finalizing Apex 99.99% Setup...**", 2.0)
-        ]
-        for s, e, msg, d in stages:
-            status_text.markdown(msg)
-            for i in range(s, e):
-                time.sleep(d); progress_bar.progress(i)
+        atr = data_row.get("ATR", cp * 0.02)
+        adx = data_row.get("ADX", 20)
+        rsi = data_row.get("RSI", 50)
+        ema200 = data_row.get("EMA200", cp)
 
-        a15, a1h, a4h = h15.get_analysis(), h1h.get_analysis(), h4h.get_analysis()
-        ind = a15.indicators
-        cp = ind.get("close") or 0
-        
-        # --- 1. PRICE ACTION & CANDLE PATTERNS ---
-        # Logic: Check for common high-probability reversals
-        patterns = []
-        if ind.get("RSI") < 35 and cp > ind.get("open"): patterns.append("🔨 Hammer (Bullish)")
-        if ind.get("close") > ind.get("open") and (ind.get("close") - ind.get("open")) > (ind.get("high") - ind.get("low")) * 0.6:
-            patterns.append("🔥 Bullish Engulfing")
-        pattern_text = ", ".join(patterns) if patterns else "No Clear Pattern"
+        volume = data_row.get("volume", 1)
+        avg_volume = data_row.get("avg_volume", 1)
+        vol_ratio = volume / avg_volume if avg_volume else 1
 
-        # --- 2. LIQUIDITY & ORDER BOOK CHECK ---
-        vol_ratio = (ind.get("volume") or 0) / (ind.get("average_volume") or 1)
-        liquidity_status = "💎 HIGH LIQUIDITY (Wall Detected)" if vol_ratio > 1.4 else "🌊 NORMAL FLOW"
+        # =========================
+        # 🧠 MARKET REGIME
+        # =========================
+        if adx < 20:
+            return {"signal": "NO TRADE", "reason": "Ranging market"}
 
-        # --- 3. 10 CORE INDICATORS GRID ---
-        indicators_10 = {
-            "RSI": f"{ind.get('RSI', 50):.2f}", "MACD": f"{ind.get('MACD.macd', 0):.4f}",
-            "VWAP": f"{ind.get('VWAP', cp):,.2f}", "ADX": f"{ind.get('ADX', 0):.2f}",
-            "ATR": f"{ind.get('ATR', cp*0.02):.2f}", "EMA200": f"{ind.get('EMA200', cp):,.2f}",
-            "Stoch": f"{ind.get('Stoch.K', 50):.2f}", "CCI": f"{ind.get('CCI20', 0):.2f}",
-            "AO": f"{ind.get('AO', 0):.4f}", "Vol/Avg": f"{vol_ratio:.2f}x"
-        }
+        # =========================
+        # 📊 TREND FILTER
+        # =========================
+        is_long = cp > ema200
+        is_short = cp < ema200
 
-        # --- 4. APEX TRADE SETUP (4.5% MOVE TARGET) ---
-        is_long = a15.summary['BUY'] > a15.summary['SELL']
-        tp_price = cp * 1.045 if is_long else cp * 0.955 # Aggressive Titan Target
-        atr_val = ind.get("ATR") or (cp * 0.02)
-        sl_price = cp - (atr_val * 2.8) if is_long else cp + (atr_val * 2.8) # Ultra-Safe Stop
+        if not (is_long or is_short):
+            return {"signal": "NO TRADE"}
 
-        # Leverage Calculation
-        lev = 20
-        if a1h.summary['RECOMMENDATION'] == "STRONG_BUY" and vol_ratio > 1.2:
-            lev = 50 if ind.get("ADX", 0) > 30 else 35
+        # =========================
+        # 🔥 SMART MONEY
+        # =========================
+        spread = max(high - low, 1e-6)
+        body = abs(cp - open_p)
+        smart_money = (body / spread > 0.6) and (vol_ratio > 1.5)
 
-        # --- 5. FUTURE PROJECTION ---
-        days_out = (target_date - datetime.now().date()).days
-        slope = (cp - (ind.get("SMA50") or cp)) / 50
-        projected = cp + (slope * max(days_out, 1) * 1.6)
-        surety = min(99.99, (a1h.summary['BUY'] * 4) + (10 if patterns else 0) + (10 if vol_ratio > 1 else 0))
+        # =========================
+        # 💣 LIQUIDITY SWEEP
+        # =========================
+        liquidity_sweep = (low < data_row.get("prev_low", low) and cp > open_p) or \
+                          (high > data_row.get("prev_high", high) and cp < open_p)
 
-        status_text.empty(); progress_bar.empty()
+        # =========================
+        # 📊 STRUCTURE (PIVOT)
+        # =========================
+        pivot = (high + low + cp) / 3
+        r1 = (2 * pivot) - low
+        s1 = (2 * pivot) - high
+
+        # =========================
+        # 🎯 ENTRY ZONE
+        # =========================
+        if is_long:
+            entry = cp - atr * 0.3
+            tp = r1
+            sl = cp - atr * 2
+        else:
+            entry = cp + atr * 0.3
+            tp = s1
+            sl = cp + atr * 2
+
+        # =========================
+        # ⚖️ RISK REWARD
+        # =========================
+        risk = abs(entry - sl)
+        reward = abs(tp - entry)
+        rr = reward / risk if risk else 0
+
+        if rr < 1.5:
+            return {"signal": "NO TRADE"}
+
+        # =========================
+        # 🧠 CONFLUENCE SCORE
+        # =========================
+        score = 0
+        if adx > 25: score += 1
+        if vol_ratio > 1.3: score += 1
+        if smart_money: score += 1
+        if liquidity_sweep: score += 1
+        if (is_long and rsi < 40) or (is_short and rsi > 60): score += 1
+
+        if score < 3:
+            return {"signal": "NO TRADE"}
+
         return {
-            "indicators": indicators_10, "pattern": pattern_text, "liquidity": liquidity_status,
-            "setup": {"entry": cp, "sl": sl_price, "tp": tp_price, "lev": lev},
-            "projection": projected, "surety": surety, "bias": a15.summary['RECOMMENDATION'].replace("_", " ")
+            "signal": "LONG" if is_long else "SHORT",
+            "entry": entry,
+            "tp": tp,
+            "sl": sl,
+            "rr": rr,
+            "score": score,
+            "rsi": rsi,
+            "adx": adx,
+            "volume_ratio": vol_ratio
         }
-    except Exception as e: return str(e)
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# =========================
+# 🔬 BACKTEST ENGINE
+# =========================
+def backtest(data):
+    balance = 1000
+    trades = []
+
+    for i in range(50, len(data) - 1):
+        row = data.iloc[i]
+        next_row = data.iloc[i + 1]
+
+        result = titan_edge_engine("BTC/USDT", row)
+
+        if result.get("signal") in ["LONG", "SHORT"]:
+            entry = result["entry"]
+            tp = result["tp"]
+            sl = result["sl"]
+
+            hit_tp = next_row["high"] >= tp if result["signal"] == "LONG" else next_row["low"] <= tp
+            hit_sl = next_row["low"] <= sl if result["signal"] == "LONG" else next_row["high"] >= sl
+
+            if hit_tp:
+                balance *= 1.02
+                outcome = 1
+            elif hit_sl:
+                balance *= 0.98
+                outcome = 0
+            else:
+                continue
+
+            trades.append({**result, "outcome": outcome, "balance": balance})
+
+            # log ML data
+            ml_dataset.append({
+                "rsi": result["rsi"],
+                "adx": result["adx"],
+                "volume_ratio": result["volume_ratio"],
+                "rr": result["rr"],
+                "score": result["score"],
+                "outcome": outcome
+            })
+
+    return pd.DataFrame(trades)
+
+
+# =========================
+# 📊 ANALYTICS
+# =========================
+def analyze(trades):
+    win_rate = trades["outcome"].mean()
+    return {
+        "trades": len(trades),
+        "win_rate": round(win_rate * 100, 2),
+        "final_balance": trades["balance"].iloc[-1] if len(trades) else 0
+    }
+
+
+# =========================
+# 🤖 ML MODEL
+# =========================
+def train_ml():
+    global ml_model
+    df = pd.DataFrame(ml_dataset)
+
+    if len(df) < 50:
+        return None
+
+    X = df[["rsi", "adx", "volume_ratio", "rr", "score"]]
+    y = df["outcome"]
+
+    model = RandomForestClassifier()
+    model.fit(X, y)
+
+    ml_model = model
+    return model
+
+
+def ml_filter(result):
+    if ml_model is None:
+        return True
+
+    features = [[
+        result["rsi"],
+        result["adx"],
+        result["volume_ratio"],
+        result["rr"],
+        result["score"]
+    ]]
+
+    prob = ml_model.predict_proba(features)[0][1]
+    return prob > 0.6
+
+
+# =========================
+# ⚙️ OPTIMIZATION
+# =========================
+def optimize(data):
+    best = None
+    best_score = -1
+
+    for _ in range(5):
+        trades = backtest(data)
+        stats = analyze(trades)
+
+        score = stats["win_rate"] * stats["final_balance"]
+
+        if score > best_score:
+            best_score = score
+            best = stats
+
+    return best
+
+
+# =========================
+# 🧪 MONTE CARLO
+# =========================
+def monte_carlo(trades, runs=100):
+    results = []
+
+    for _ in range(runs):
+        balance = 1000
+        shuffled = trades.sample(frac=1)
+
+        for _, t in shuffled.iterrows():
+            balance *= 1.02 if t["outcome"] == 1 else 0.98
+
+        results.append(balance)
+
+    return results
         
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
