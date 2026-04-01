@@ -366,12 +366,13 @@ import time
 import random
 from datetime import datetime, timedelta
 
-def get_titan_apex_ultra(symbol, target_date): 
-# =========================
-# 🧠 GLOBAL ML STORAGE
-# =========================
-ml_dataset = []
-ml_model = None
+def get_titan_apex_ultra(symbol, target_date):
+    # =========================
+    # 🧠 GLOBAL ML STORAGE
+    # =========================
+    global ml_dataset, ml_model
+    ml_dataset = []
+    ml_model = None
 
 # =========================
 # SYMBOL HANDLING
