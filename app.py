@@ -439,11 +439,17 @@ def get_deep_analysis(symbol, target_date): # Timeframe removed as requested
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
     
-    # Updated Tab Navigation to include AI Bot
-    t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment, t_bot = st.tabs([
-        "📊 Journal", "📈 Compound", "🎯 DCA", "⚖️ Breakeven", 
-        "📏 Position %", "⚠️ Stress Test", "🧠 Sentiment", "🤖 AI Bot Scanner"
-    ]
+# Updated Tab Navigation to include AI Bot
+t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment, t_bot = st.tabs([
+    "📊 Journal", 
+    "📈 Compound", 
+    "🎯 DCA", 
+    "⚖️ Breakeven", 
+    "📏 Position %", 
+    "⚠️ Stress Test", 
+    "🧠 Sentiment", 
+    "🤖 AI Bot Scanner"
+])
 
     # 1. TRADING JOURNAL
     with t_journal:
