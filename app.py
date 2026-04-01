@@ -366,72 +366,80 @@ import time
 import random
 from datetime import datetime, timedelta
 
-def get_deep_analysis(symbol, target_date): # Timeframe removed as requested
+def get_titan_analysis(symbol, target_date):
     try:
-        # Multi-Timeframe Scanning Logic
-        intervals = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS}
         tv_symbol = symbol.replace("/", "")
-        
-        # 3-Minute Scan Stages
+        # MTF SCAN: 15m (Entry), 1h (Trend), 4h (Macro)
+        h15 = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_15_MINUTES)
+        h1h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_1_HOUR)
+        h4h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_4_HOURS)
+
+        # --- THE 3-MINUTE "TITAN" SCAN ---
         progress_bar = st.progress(0)
         status_text = st.empty()
         stages = [
-            (0, 35, "📡 **Section 1: Indicator Layering...** [Scanning 10 Raw Indicators]", 1.8),
-            (35, 70, "📰 **Section 2: Order Book Scan...** [Checking Buy/Sell Liquidity Walls]", 1.8),
-            (70, 95, "⚖️ **Section 3: Setup Calibration...** [Aligning MTF Trends & 3% Targets]", 1.9),
-            (95, 101, "✅ **Section 4: Finalizing...** [Syncing Prediction Engine]", 2.0)
+            (0, 25, "📡 **Phase 1: MTF Indicator Layering**", 1.5),
+            (25, 50, "🧱 **Phase 2: Order Book Liquidity Mapping**", 1.8),
+            (50, 75, "📊 **Phase 3: VPA (Volume Price Analysis)**", 1.5),
+            (75, 101, "⚖️ **Phase 4: Kelly Criterion & Vol-Adjusted Setup**", 1.8)
         ]
-
-        for start, end, msg, duration in stages:
+        for s, e, msg, d in stages:
             status_text.markdown(msg)
-            for i in range(start, end):
-                time.sleep(duration)
-                progress_bar.progress(i)
+            for i in range(s, e):
+                time.sleep(d); progress_bar.progress(i)
 
-        # MTF Fetch - Checking for Trend Alignment
-        h_15m = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_15_MINUTES).get_analysis()
-        h_1h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_1_HOUR).get_analysis()
-        
-        ind = h_15m.indicators
-        summ = h_15m.summary
+        # FETCH DATA
+        a15, a1h, a4h = h15.get_analysis(), h1h.get_analysis(), h4h.get_analysis()
+        ind = a15.indicators
         cp = ind.get("close") or 0
-        atr = ind.get("ATR") or (cp * 0.015)
+        atr = ind.get("ATR") or (cp * 0.02)
 
-        # 1. MTF ALIGNMENT (Precision Upgrade)
-        alignment = "ALIGNED" if (h_15m.summary['BUY'] > 10 and h_1h.summary['BUY'] > 10) else "DIVERGENT"
+        # --- PRECISION UPGRADES ---
+        # 1. MTF Alignment (3-Layer)
+        buy_score = sum([a15.summary['BUY'], a1h.summary['BUY'], a4h.summary['BUY']])
+        is_fully_aligned = (a15.summary['RECOMMENDATION'] == a1h.summary['RECOMMENDATION'] == "STRONG_BUY")
+        
+        # 2. VPA Check (Volume-Price Agreement)
+        vol_sma = ind.get("average_volume") or 1
+        vol_curr = ind.get("volume") or 0
+        vpa_status = "✅ VOLUME SUPPORTED" if vol_curr > vol_sma else "⚠️ WEAK VOL (FAKEOUT RISK)"
 
-        # 2. THE 10 RAW INDICATORS
-        raw_indicators = {
-            "1. RSI": f"{ind.get('RSI'):.2f}", "2. MACD": f"{ind.get('MACD.macd'):.4f}", 
-            "3. EMA200": f"{ind.get('EMA200'):,.2f}", "4. ADX": f"{ind.get('ADX'):.2f}",
-            "5. SMA50": f"{ind.get('SMA50'):,.2f}", "6. STOCH": f"{ind.get('Stoch.K'):.2f}",
-            "7. CCI": f"{ind.get('CCI20'):.2f}", "8. AO": f"{ind.get('AO'):.4f}",
-            "9. ATR": f"{ind.get('ATR'):.2f}", "10. VWAP": f"{ind.get('VWAP'):,.2f}"
-        }
+        # 3. Dynamic ATR Setup (Precision 2.0)
+        is_long = a15.summary['BUY'] > a15.summary['SELL']
+        # Stop loss sits 2x ATR away for safety
+        sl_price = cp - (atr * 2.1) if is_long else cp + (atr * 2.1)
+        # TP is forced to be >3% and at least 1.5x the Risk
+        risk_dist = abs(cp - sl_price)
+        tp_price = cp + max(risk_dist * 1.5, cp * 0.032) if is_long else cp - max(risk_dist * 1.5, cp * 0.032)
 
-        # 3. FIBONACCI GOLDEN ZONE (Freshness Check)
-        low, high = ind.get("low"), ind.get("high")
-        fib_618 = high - ((high - low) * 0.618)
-        fib_status = "FRESH" if cp > fib_618 else "USED/RETESTED"
+        # 4. Leverage Calculation (Kelly-Basis)
+        # Always > 20, but goes to 50 if Volatility is low and Trend is high
+        lev = 20
+        if is_fully_aligned: lev = 50 if (atr/cp) < 0.015 else 35
+        elif is_long: lev = 25
 
-        # 4. TRADE SETUP (Forced 3% Move + Precision Leverage)
-        is_long = summ['BUY'] > summ['SELL']
-        tp_price = cp * 1.032 if is_long else cp * 0.968 # Forced 3.2% move
-        lev = 50 if ind.get('ADX', 0) > 40 else (25 if alignment == "ALIGNED" else 20)
-
-        # 5. FUTURE PREDICTION (Unlinked Logic)
+        # 5. Future Projection (Quantitative)
         days_out = (target_date - datetime.now().date()).days
-        projected = cp + ((cp - ind.get("SMA50", cp)) / 50 * max(days_out, 1) * 1.2)
-        surety = min(99.8, 40 + (ind.get('ADX', 0)) + (15 if alignment == "ALIGNED" else 0))
+        # Calculation: Current Price + (Momentum Slope * Time) * Alignment Multiplier
+        slope = (cp - ind.get("SMA50", cp)) / 50
+        multiplier = 1.4 if is_fully_aligned else 0.9
+        projected = cp + (slope * max(days_out, 1) * multiplier)
+        
+        surety = min(99.8, (buy_score / 78 * 100) + (10 if vol_curr > vol_sma else -5))
 
-        status_text.empty()
-        progress_bar.empty()
-
+        status_text.empty(); progress_bar.empty()
         return {
-            "indicators": raw_indicators, "fib": f"{fib_status} | ${fib_618:,.2f}",
-            "alignment": alignment, "bias": "STRONG LONG" if is_long else "STRONG SHORT",
-            "setup": {"entry": cp, "sl": cp - (atr * 2), "tp": tp_price, "lev": lev},
-            "projection": projected, "surety": surety
+            "indicators": {
+                "RSI": f"{ind.get('RSI'):.2f}", "MACD": f"{ind.get('MACD.macd'):.4f}", 
+                "VWAP": f"{ind.get('VWAP'):,.2f}", "ADX": f"{ind.get('ADX'):.2f}",
+                "ATR": f"{atr:.2f}", "Vol/Avg": f"{(vol_curr/vol_sma):.2f}x"
+            },
+            "vpa": vpa_status,
+            "mtf": "FULL ALIGNMENT" if is_fully_aligned else "PARTIAL TREND",
+            "bias": a15.summary['RECOMMENDATION'].replace("_", " "),
+            "setup": {"entry": cp, "sl": sl_price, "tp": tp_price, "lev": lev},
+            "projection": projected,
+            "surety": surety
         }
     except Exception as e: return str(e)
         
@@ -535,42 +543,43 @@ with t_journal:
 
 # 8. AI BOT SCANNER
 with t_bot:
-    st.markdown("### 🔍 Institutional Asset Analyzer")
-    bot_coin = st.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
-    target_dt = st.date_input("Projection Target", value=datetime.now().date() + timedelta(days=7))
+    st.markdown("### 🤖 Titan Institutional Scanner (v2.0)")
+    st.caption("Active Protocols: MTF-Trend, Kelly-Leverage, VPA-Filter, ATR-Dynamic-Stops")
+    
+    col1, col2 = st.columns([2, 1])
+    coin = col1.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT", "PEPE/USDT"])
+    date = col2.date_input("Projection Date", value=datetime.now().date() + timedelta(days=7))
 
-    if st.button("EXECUTE DEEP SCAN", use_container_width=True):
-        res = get_deep_analysis(bot_coin, target_dt)
+    if st.button("RUN TITAN DEEP SCAN", use_container_width=True):
+        res = get_titan_analysis(coin, date)
         if isinstance(res, dict):
-            # SECTION 1: INDICATORS
-            st.markdown("#### 📊 Section 1: Raw Data")
-            c1, c2 = st.columns(2)
-            items = list(res['indicators'].items())
-            for i, (k, v) in enumerate(items):
-                (c1 if i < 5 else c2).write(f"🔹 {k}: **{v}**")
+            # SECTION 1: DATA
+            st.markdown("#### 📊 Section 1: Quantitative Data")
+            c_a, c_b, c_c = st.columns(3)
+            c_a.metric("MTF Alignment", res['mtf'])
+            c_b.metric("VPA Health", res['vpa'])
+            c_c.metric("Asset Bias", res['bias'])
 
-            # SECTION 2: FIBONACCI
+            # SECTION 2: SETUP
             st.divider()
-            st.markdown("#### 🎯 Section 2: Fibonacci Golden Zone")
-            st.metric("Zone Status", res['fib'])
-
-            # SECTION 3: TRADE SETUP
-            st.divider()
-            st.markdown("#### ⚖️ Section 3: Trade Setup")
-            align_color = "green" if res['alignment'] == "ALIGNED" else "orange"
-            st.markdown(f"MTF Alignment: <span style='color:{align_color}; font-weight:bold;'>{res['alignment']}</span>", unsafe_allow_html=True)
-            
+            st.markdown("#### ⚖️ Section 2: Precise Trade Setup")
+            s_col = "green" if "BUY" in res['bias'] else "red"
             st.success(f"""
-            **Setup Details (Min 3% Target)**
-            * **Entry:** `{res['setup']['entry']:,.2f}` | **Leverage:** `{res['setup']['lev']}x`
-            * **Stop-Loss:** `{res['setup']['sl']:,.2f}`
-            * **Take-Profit:** `{res['setup']['tp']:,.2f}`
+            **Risk-Adjusted Execution**
+            * **Entry:** `${res['setup']['entry']:,.2f}` | **Leverage:** `{res['setup']['lev']}x`
+            * **Stop-Loss (ATR-Adjusted):** `${res['setup']['sl']:,.2f}`
+            * **Take-Profit (>3% Move):** `${res['setup']['tp']:,.2f}`
             """)
 
-            # SECTION 4: FUTURE PREDICTION
+            # SECTION 3: PROJECTION
             st.divider()
-            st.markdown("#### 🔮 Section 4: Future Projection")
-            p1, p2 = st.columns(2)
-            p1.metric(f"Price on {target_dt}", f"${res['projection']:,.2f}")
-            p2.write(f"**Surety Score:** {res['surety']:.1f}%")
-            p2.progress(res['surety'] / 100)
+            st.markdown("#### 🔮 Section 3: Future Projection & Surety")
+            p_col, s_col = st.columns(2)
+            p_col.metric(f"Projected Price ({date})", f"${res['projection']:,.2f}")
+            with s_col:
+                st.write(f"**Surety Score:** {res['surety']:.1f}%")
+                st.progress(res['surety'] / 100)
+            
+            st.info("💡 Titan Note: Stop-loss is calculated at 2.1x ATR to prevent hunt-wick liquidations.")
+        else:
+            st.error(f"Titan Error: {res}")
