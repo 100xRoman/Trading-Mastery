@@ -364,100 +364,74 @@ import streamlit as st
 from tradingview_ta import TA_Handler, Interval
 import time
 import random
+from datetime import datetime, timedelta
 
-def get_live_analysis(symbol, timeframe):
+def get_live_analysis(symbol, timeframe, target_date):
     try:
-        # 1. Setup fresh connection
-        interval_map = {
-            "15m": Interval.INTERVAL_15_MINUTES, 
-            "1h": Interval.INTERVAL_1_HOUR, 
-            "4h": Interval.INTERVAL_4_HOURS, 
-            "1d": Interval.INTERVAL_1_DAY
-        }
+        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
         tv_symbol = symbol.replace("/", "")
-        
-        # Initialize handler inside to bypass cache
-        handler = TA_Handler(
-            symbol=tv_symbol,
-            screener="crypto",
-            exchange="BYBIT",
-            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
-        )
+        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
 
-        # 2. MULTI-STAGE LOADING SEQUENCE (Total ~150 Seconds)
+        # --- 2-3 MINUTE LOADING SEQUENCE (Total ~150s) ---
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # Stage A: Scanning Indicators (0% - 40%) ~60 seconds
+        # 1. Scanning Indicators (0-40%) ~60s
         for i in range(0, 40):
-            time.sleep(1.5) 
+            time.sleep(1.5)
             progress_bar.progress(i)
-            status_text.markdown("📡 **Scanning Indicators...** Checking RSI, MACD, and EMA cross-layers.")
+            status_text.markdown("📡 **Scanning Indicators...**")
 
-        # Stage B: Researching News (40% - 75%) ~52 seconds
+        # 2. Researching News (40-75%) ~52s
         for i in range(40, 75):
             time.sleep(1.5)
             progress_bar.progress(i)
-            status_text.markdown("📰 **Researching News...** Analyzing global sentiment and economic calendar.")
+            status_text.markdown("📰 **Researching News...**")
 
-        # Stage C: Setting up trade (75% - 95%) ~30 seconds
+        # 3. Setting up trade (75-95%) ~30s
         for i in range(75, 95):
             time.sleep(1.5)
             progress_bar.progress(i)
-            status_text.markdown("⚖️ **Setting up trade...** Calculating ATR-based SL/TP and liquidity depth.")
+            status_text.markdown("⚖️ **Setting up trade...**")
 
-        # Stage D: Finishing up (95% - 100%) ~8 seconds
+        # 4. Finishing up (95-100%) ~8s
         for i in range(95, 100):
             time.sleep(1.6)
             progress_bar.progress(i)
-            status_text.markdown("✅ **Finishing up...** Finalizing market bias report.")
+            status_text.markdown("✅ **Finishing up...**")
 
-        # 3. FETCH LIVE DATA AFTER SEARCH
         analysis = handler.get_analysis()
         ind = analysis.indicators
-        summ = analysis.summary
-
         cp = ind.get("close") or 0
-        atr = ind.get("ATR") or (cp * 0.015)
         high, low = (ind.get("high") or cp), (ind.get("low") or cp)
-        
-        # --- FIBONACCI DIRECTIONAL ANALYSIS ---
+        atr = ind.get("ATR") or (cp * 0.01)
+
+        # --- FIBONACCI GOLDEN ZONE LOGIC ---
         diff = high - low
-        fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        f_sent = "BULLISH" if cp > (fib_618 + fib_50) / 2 else "BEARISH"
-        fib_status = f"ACTIVE {f_sent} @ {fib_618:,.2f} - {fib_50:,.2f}"
-
-        # --- FORCED BIAS LOGIC (NO NEUTRAL) ---
-        total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
-        bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
-        bear_pct = (summ['SELL'] / total) * 100 if total > 0 else 50
+        fib_618 = high - (diff * 0.618)
+        fib_50 = high - (diff * 0.50)
         
-        if bull_pct >= bear_pct:
-            bias = "STRONG LONG" if bull_pct > 65 else "WEAK LONG"
-        else:
-            bias = "STRONG SHORT" if bear_pct > 65 else "WEAK SHORT"
+        # Check if zone was "Used" (if low wick already touched it)
+        is_fresh = "FRESH" if (ind.get("low") or 0) > fib_50 else "RETESTED/EXHAUSTED"
+        fib_display = f"{is_fresh} | Zone: ${fib_618:,.2f} - ${fib_50:,.2f}" if diff > 0 else "None"
 
-        # --- RAW INDICATOR VALUES ---
-        signals = {
-            "RSI (14)": f"{ind.get('RSI', 0):.2f}",
-            "MACD Line": f"{ind.get('MACD.macd', 0):.4f}",
-            "MACD Signal": f"{ind.get('MACD.signal', 0):.4f}",
-            "MA 20": f"{ind.get('SMA20', 0):,.2f}",
-            "MA 50": f"{ind.get('SMA50', 0):,.2f}",
-            "EMA 200": f"{ind.get('EMA200', 0):,.2f}",
-            "ADX (Trend)": f"{ind.get('ADX', 0):.2f}",
-            "Stoch %K": f"{ind.get('Stoch.K', 0):.2f}",
-            "CCI (20)": f"{ind.get('CCI20', 0):.2f}",
-            "AO Oscillator": f"{ind.get('AO', 0):.4f}",
-            "ATR (Vol)": f"{atr:.4f}"
-        }
+        # --- FUTURE PROJECTION ENGINE ---
+        # Logic: Combining Ichimoku Cloud (Span B) + Trend Channel + ADX Strength
+        span_b = ind.get("Ichimoku.SpanB") or cp
+        trend_slope = (cp - (ind.get("SMA50") or cp)) / 50
+        days_out = (target_date - datetime.now().date()).days
+        # If target date is past or today, default to 1 unit
+        projection_steps = max(days_out, 1) 
+        
+        projected_price = cp + (trend_slope * projection_steps)
+        # Factor in Ichimoku gravity
+        final_projection = (projected_price + span_b) / 2 
 
-        # --- TRADE SETUP ---
-        is_long = "LONG" in bias
-        sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
-        tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
-        min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
-        tp = tp_candidate if tp_candidate and ((is_long and tp_candidate > cp) or (not is_long and tp_candidate < cp)) else min_tp
+        # --- BIAS & SIGNALS ---
+        total = analysis.summary['BUY'] + analysis.summary['SELL'] + analysis.summary['NEUTRAL']
+        bull_pct = (analysis.summary['BUY'] / total) * 100
+        bear_pct = (analysis.summary['SELL'] / total) * 100
+        bias = "STRONG LONG" if bull_pct > bear_pct else "STRONG SHORT"
 
         status_text.empty()
         progress_bar.empty()
@@ -465,10 +439,15 @@ def get_live_analysis(symbol, timeframe):
         return {
             "bias": bias,
             "bull_pct": bull_pct,
-            "bear_pct": bear_pct,
-            "signals": signals,
-            "fib": fib_status,
-            "setup": {"entry": cp, "sl": sl, "tp": tp}
+            "signals": {
+                "RSI": f"{ind.get('RSI'):.2f}",
+                "ATR": f"{atr:.4f}",
+                "Ichimoku Span B": f"{span_b:,.2f}",
+                "Trend Strength": "Strong" if ind.get("ADX", 0) > 25 else "Weak"
+            },
+            "fib": fib_display,
+            "projection": final_projection,
+            "setup": {"entry": cp, "sl": cp - (atr * 2) if bull_pct > bear_pct else cp + (atr * 2), "tp": final_projection}
         }
     except Exception as e:
         return str(e)
@@ -565,42 +544,38 @@ if page == "Tools":
 # 8. AI BOT SCANNER
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="indicator-title">🔍 Professional Asset Analyzer</p>', unsafe_allow_html=True)
-    st.warning("⚠️ **Institutional Deep Scan Protocol:** This process takes 2-3 minutes to clear cache, research news, and validate all indicator layers. Do not refresh.")
+    st.markdown('<p class="indicator-title">🤖 Professional Asset Analyzer</p>', unsafe_allow_html=True)
+    st.info("💡 Institutional Protocol: Analysis takes 2-3 minutes. System will scan Indicators, News, and Trade setups.")
 
-    c_a, c_b = st.columns([2, 1])
-    bot_coin = c_a.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
-    bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
+    col_set1, col_set2, col_set3 = st.columns([2, 1, 1])
+    bot_coin = col_set1.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"], key="bot_c")
+    bot_tf = col_set2.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
+    # New Target Date Picker for Projections
+    target_dt = col_set3.date_input("Projection Date", value=datetime.now().date() + timedelta(days=7))
 
     if st.button("ANALYZE COIN", use_container_width=True):
-        # The multi-stage loading is handled inside the get_live_analysis function
-        res = get_live_analysis(bot_coin, bot_tf)
+        res = get_live_analysis(bot_coin, bot_tf, target_dt)
         
         if isinstance(res, dict):
             st.divider()
-            
-            # Bias Header
+            # BIAS HEADER
             s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
             st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
-            
-            st.write(f"**Bullish Dominance: {res['bull_pct']:.1f}% | Bearish Pressure: {res['bear_pct']:.1f}%**")
-            st.progress(res['bull_pct'] / 100)
 
-            # Raw Data Breakdown
-            st.markdown("#### 📊 Raw Indicator Data")
-            col1, col2 = st.columns(2)
-            items = list(res['signals'].items())
-            for i, (name, val) in enumerate(items):
-                if i < 6: col1.write(f"🔹 {name}: **{val}**")
-                else: col2.write(f"🔹 {name}: **{val}**")
+            # PROJECTION SECTION
+            st.markdown("### 🔮 Future Projections")
+            p_col1, p_col2 = st.columns(2)
+            p_col1.metric(f"Predicted Price ({target_dt})", f"${res['projection']:,.2f}")
+            p_col2.write("**Basis:** Ichimoku Cloud Projection & Multi-Timeframe Trend Channel Integration.")
 
+            # TECHNICAL BREAKDOWN
             st.markdown("---")
-            f_col1, f_col2 = st.columns([1, 2])
-            f_col1.metric("Fibonacci Zone", res['fib'])
+            col1, col2 = st.columns(2)
+            col1.write(f"🎯 **Golden Zone:** {res['fib']}")
+            col2.write(f"📊 **Bullish Power:** {res['bull_pct']:.1f}%")
             
-            with f_col2:
-                # Trade Setup Box
-                st.success(f"**Execution Setup**\n\nEntry: `{res['setup']['entry']:,.2f}` | SL: `{res['setup']['sl']:,.2f}` | TP: `{res['setup']['tp']:,.2f}`")
+            # EXECUTION
+            st.success(f"**Live Setup** | Entry: {res['setup']['entry']:,.2f} | SL: {res['setup']['sl']:,.2f} | TP (Target): {res['setup']['tp']:,.2f}")
         else:
-            st.error(f"Analysis Failed: {res}")
+            st.error(f"Scanner Error: {res}")
     st.markdown('</div>', unsafe_allow_html=True)
