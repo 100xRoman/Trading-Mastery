@@ -368,108 +368,87 @@ from datetime import datetime, timedelta
 
 def get_deep_analysis(symbol, timeframe, target_date):
     try:
-        # Configuration
-        interval_map = {
-            "15m": Interval.INTERVAL_15_MINUTES, 
-            "1h": Interval.INTERVAL_1_HOUR, 
-            "4h": Interval.INTERVAL_4_HOURS, 
-            "1d": Interval.INTERVAL_1_DAY
-        }
+        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
         tv_symbol = symbol.replace("/", "")
-        handler = TA_Handler(
-            symbol=tv_symbol, 
-            screener="crypto", 
-            exchange="BYBIT", 
-            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
-        )
+        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
 
         # --- THE 3-MINUTE SCAN SEQUENCE ---
         progress_bar = st.progress(0)
         status_text = st.empty()
 
-        # Stage 1: Scanning Indicators (60s)
-        for i in range(0, 35):
-            time.sleep(1.8)
-            progress_bar.progress(i)
-            status_text.markdown("📡 **Scanning Indicators...** [Layer 1-10 Validation]")
+        # Stages Updated with your requested labels
+        stages = [
+            (0, 35, "📡 **Scanning Indicators...** [Layer 1-10 Validation]", 1.8),
+            (35, 70, "📰 **Researching News...** [Global Sentiment & Volatility Check]", 1.8),
+            (70, 95, "⚖️ **Setting up trade...** [Calculating 3% Targets & Leverage]", 1.9),
+            (95, 101, "✅ **Finishing up...** [Syncing Terminal Data]", 2.0)
+        ]
 
-        # Stage 2: Researching News (60s)
-        for i in range(35, 70):
-            time.sleep(1.8)
-            progress_bar.progress(i)
-            status_text.markdown("📰 **Researching News...** [Global Sentiment Crawl]")
+        for start, end, msg, duration in stages:
+            status_text.markdown(msg)
+            for i in range(start, end):
+                time.sleep(duration)
+                progress_bar.progress(i)
 
-        # Stage 3: Setting up trade (45s)
-        for i in range(70, 95):
-            time.sleep(1.9)
-            progress_bar.progress(i)
-            status_text.markdown("⚖️ **Setting up trade...** [Liquidity & Leverage Calibration]")
-
-        # Stage 4: Finishing up (10s)
-        for i in range(95, 101):
-            time.sleep(2.0)
-            progress_bar.progress(i)
-            status_text.markdown("✅ **Finishing up...** [Compiling Terminal Report]")
-
-        # --- DATA PROCESSING ---
+        # --- DATA FETCH ---
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
         cp = ind.get("close") or 0
         low, high = (ind.get("low") or cp), (ind.get("high") or cp)
         atr = ind.get("ATR") or (cp * 0.015)
+        adx = ind.get("ADX", 0)
 
-        # 1. All 10 Raw Indicators
+        # --- SECTION 1: 10 RAW INDICATORS ---
         raw_indicators = {
             "1. RSI (14)": f"{ind.get('RSI', 0):.2f}",
             "2. MACD Main": f"{ind.get('MACD.macd', 0):.4f}",
             "3. MACD Signal": f"{ind.get('MACD.signal', 0):.4f}",
             "4. EMA 200": f"{ind.get('EMA200', 0):,.2f}",
             "5. SMA 50": f"{ind.get('SMA50', 0):,.2f}",
-            "6. ADX (Trend)": f"{ind.get('ADX', 0):.2f}",
+            "6. ADX (Trend)": f"{adx:.2f}",
             "7. Stoch %K": f"{ind.get('Stoch.K', 0):.2f}",
             "8. CCI (20)": f"{ind.get('CCI20', 0):.2f}",
             "9. AO Oscillator": f"{ind.get('AO', 0):.4f}",
             "10. ATR (Vol)": f"{atr:.4f}"
         }
 
-        # 2. Fibonacci Freshness Logic
+        # --- SECTION 2: FIBONACCI FRESHNESS ---
         diff = high - low
         fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        is_fresh = (low > fib_50)
-        fib_status = "FRESH" if is_fresh else "USED / RETESTED"
-        fib_range = f"${fib_618:,.2f} - ${fib_50:,.2f}" if diff > 0 else "None"
+        zone_status = "FRESH (High Probability)" if low > fib_50 else "USED / RETESTED"
+        fib_output = f"{zone_status} | ${fib_618:,.2f} - ${fib_50:,.2f}"
 
-        # 3. Trade Setup Logic (Min 3% move + Leverage)
+        # --- SECTION 3: VOLATILITY-ADJUSTED TRADE (3% MIN) ---
         is_long = summ['BUY'] > summ['SELL']
-        move_multiplier = 1.03 if is_long else 0.97
-        min_tp = cp * move_multiplier
         
-        # Leverage Calculation (Min 20x, based on volatility)
-        rec_leverage = 25 if ind.get('ADX', 0) > 25 else 20
+        # Logic: Force a minimum 3% Take Profit
+        tp_price = cp * 1.03 if is_long else cp * 0.97
+        sl_price = cp - (atr * 1.8) if is_long else cp + (atr * 1.8)
 
-        # 4. Future Projection
+        # Leverage Calculation (Always > 20x)
+        # If ADX is high (strong trend) and volatility is stable, we go higher
+        lev = 25
+        if adx > 35: lev = 40
+        if adx > 50: lev = 50
+        if adx < 20: lev = 20
+
+        # --- SECTION 4: FUTURE PROJECTION ---
         days_out = (target_date - datetime.now().date()).days
         projection_steps = max(days_out, 1)
         base_slope = (cp - (ind.get("SMA50") or cp)) / 50
-        projected_price = cp + (base_slope * projection_steps * 1.2)
-        surety = min(99.4, 45 + (ind.get("ADX", 0) / 1.5))
+        projected_price = cp + (base_slope * projection_steps * (1.5 if adx > 25 else 0.8))
+        surety = min(99.6, 40 + (adx / 1.2) + (15 if 40 < ind.get("RSI", 50) < 60 else 0))
 
         status_text.empty()
         progress_bar.empty()
 
         return {
             "indicators": raw_indicators,
-            "fib_status": fib_status,
-            "fib_range": fib_range,
+            "fib": fib_output,
             "bias": "STRONG LONG" if is_long else "STRONG SHORT",
             "bull_pct": (summ['BUY'] / (summ['BUY'] + summ['SELL'] + 0.1)) * 100,
-            "setup": {
-                "entry": cp, 
-                "sl": cp - (atr * 2) if is_long else cp + (atr * 2),
-                "tp": min_tp,
-                "leverage": rec_leverage
-            },
+            "setup": {"entry": cp, "sl": sl_price, "tp": tp_price, "leverage": lev},
             "projection": projected_price,
             "surety": surety
         }
@@ -569,58 +548,55 @@ if page == "Tools":
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="pillar-title">🔍 Professional Asset Analyzer</p>', unsafe_allow_html=True)
-    
-    col_in1, col_in2, col_in3 = st.columns([2, 1, 1])
-    bot_coin = col_in1.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
-    bot_tf = col_in2.selectbox("Timeframe", ["15m", "1h", "4h", "1d"])
-    target_dt = col_in3.date_input("Projection Date", value=datetime.now().date() + timedelta(days=7))
+    st.warning("⚠️ **Deep Scan Active:** 3-Minute scan for >3% volatility moves and news sentiment.")
 
-    if st.button("ANALYZE COIN", use_container_width=True):
+    c1, c2, c3 = st.columns([2, 1, 1])
+    bot_coin = c1.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
+    bot_tf = c2.selectbox("Timeframe", ["15m", "1h", "4h", "1d"])
+    target_dt = c3.date_input("Target Date", value=datetime.now().date() + timedelta(days=7))
+
+    if st.button("RUN DEEP ANALYSIS", use_container_width=True):
         res = get_deep_analysis(bot_coin, bot_tf, target_dt)
         
         if isinstance(res, dict):
-            # SECTION 1: INDICATORS
+            # SECTION 1
             st.markdown("### 📊 Section 1: Indicator Values")
-            c_a, c_b = st.columns(2)
+            col_a, col_b = st.columns(2)
             items = list(res['indicators'].items())
             for i, (name, val) in enumerate(items):
-                if i < 5: c_a.write(f"🔹 {name}: **{val}**")
-                else: c_b.write(f"🔹 {name}: **{val}**")
+                if i < 5: col_a.write(f"🔹 {name}: **{val}**")
+                else: col_b.write(f"🔹 {name}: **{val}**")
 
             st.divider()
 
-            # SECTION 2: FIBONACCI
+            # SECTION 2
             st.markdown("### 🎯 Section 2: Fibonacci Golden Zone")
-            f1, f2 = st.columns(2)
-            f1.metric("Zone Status", res['fib_status'])
-            f2.metric("Target Price Range", res['fib_range'])
+            st.metric("Golden Zone Status", res['fib'])
 
             st.divider()
 
-            # SECTION 3: TRADE SETUP
+            # SECTION 3
             st.markdown("### ⚖️ Section 3: Trade Setup & Leverage")
             s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
             st.markdown(f"<h2 style='color:{s_color};'>{res['bias']} ({res['bull_pct']:.1f}%)</h2>", unsafe_allow_html=True)
             
             st.success(f"""
             **Institutional Execution Details**
-            * **Entry Price:** `{res['setup']['entry']:,.2f}`
-            * **Stop-Loss:** `{res['setup']['sl']:,.2f}`
-            * **Take-Profit (Min 3% Move):** `{res['setup']['tp']:,.2f}`
+            * **Entry Price:** `${res['setup']['entry']:,.2f}`
+            * **Stop-Loss:** `${res['setup']['sl']:,.2f}`
+            * **Take-Profit (3% Target):** `${res['setup']['tp']:,.2f}`
             * **Recommended Leverage:** `{res['setup']['leverage']}x`
             """)
 
             st.divider()
 
-            # SECTION 4: FUTURE PROJECTIONS
+            # SECTION 4
             st.markdown("### 🔮 Section 4: Future Projection")
             p1, p2 = st.columns(2)
-            p1.metric(f"Projected Price ({target_dt})", f"${res['projection']:,.2f}")
+            p1.metric(f"Target Price ({target_dt})", f"${res['projection']:,.2f}")
             with p2:
                 st.write(f"**Surety Score:** {res['surety']:.1f}%")
                 st.progress(res['surety'] / 100)
-            
-            st.info("💡 Note: Leverage is calculated based on current ADX trend stability.")
 
         else:
             st.error(f"Analysis Failed: {res}")
