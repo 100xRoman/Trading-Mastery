@@ -376,7 +376,7 @@ def get_live_analysis(symbol, timeframe):
         }
         tv_symbol = symbol.replace("/", "")
         
-        # 2. FORCE REFRESH: Re-declare handler inside function to bypass cache
+        # 2. FORCE CACHE CLEAR: Re-instantiate handler inside the function
         handler = TA_Handler(
             symbol=tv_symbol,
             screener="crypto",
@@ -384,8 +384,8 @@ def get_live_analysis(symbol, timeframe):
             interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
         )
         
-        # 3. Simulated Deep Search Delay
-        time.sleep(2.5) 
+        # Artificial Search Delay (For thoroughness)
+        time.sleep(2.0) 
 
         analysis = handler.get_analysis()
         ind = analysis.indicators
@@ -396,36 +396,41 @@ def get_live_analysis(symbol, timeframe):
         high, low = (ind.get("high") or cp), (ind.get("low") or cp)
         atr = ind.get("ATR") or (cp * 0.015)
         
-        # --- FIBONACCI (Indicator 11) ---
+        # --- ENHANCED FIBONACCI (Indicator 11) ---
         diff = high - low
         fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
         
+        # Determine if price is in the zone and its sentiment
         if (fib_618 <= cp <= fib_50) or (fib_50 <= cp <= fib_618):
-            fib_status = f"ACTIVE @ {fib_618:,.2f} - {fib_50:,.2f}"
+            # Bullish if price is at the bottom of the zone and bouncing, 
+            # Bearish if it's hitting the top as resistance.
+            f_sent = "BULLISH" if cp > (fib_618 + fib_50)/2 else "BEARISH"
+            fib_status = f"ACTIVE {f_sent} @ {fib_618:,.2f} - {fib_50:,.2f}"
         elif cp < fib_618:
             fib_status = "ZONE EXHAUSTED (Price below 0.618)"
         else:
             fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
 
-        # --- SIGNAL STRENGTH & BIAS ---
+        # --- PERCENTAGE-BASED BIAS LOGIC ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         bear_pct = (summ['SELL'] / total) * 100 if total > 0 else 50
         
-        # Define strict thresholds for a trade setup
-        if bull_pct >= 75: bias = "STRONG LONG"
-        elif 60 <= bull_pct < 75: bias = "WEAK LONG"
-        elif 25 < bull_pct < 40: bias = "WEAK SHORT"
-        elif bull_pct <= 25: bias = "STRONG SHORT"
-        else: bias = "NEUTRAL"
+        # Choose bias based on which % is higher
+        if bull_pct > bear_pct and bull_pct > 55:
+            bias = "STRONG LONG" if bull_pct > 70 else "WEAK LONG"
+        elif bear_pct > bull_pct and bear_pct > 55:
+            bias = "STRONG SHORT" if bear_pct > 70 else "WEAK SHORT"
+        else:
+            bias = "NEUTRAL"
 
-        # --- DYNAMIC TRADE SETUP (Neutral Check) ---
+        # --- DYNAMIC TRADE SETUP (Hide if Neutral) ---
         setup = None
         if bias != "NEUTRAL":
             is_long = "LONG" in bias
             sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
             
-            # Ensure TP is on the correct side of entry
+            # Target TP based on pivot points
             tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
             min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
             
@@ -449,7 +454,7 @@ def get_live_analysis(symbol, timeframe):
                 "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
                 "7. Stoch %K": "Neutral",
                 "8. CCI (20)": "Neutral",
-                "9. AO Oscillator": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
+                "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
                 "10. ATR": f"{atr:.4f}"
             },
             "fib": fib_status,
@@ -557,20 +562,20 @@ with t_bot:
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
     if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
-        # Spinner stays active during the forced delay
-        with st.spinner(f"Force-clearing cache and searching {bot_coin}..."):
+        with st.spinner("Searching and clearing cache..."):
             res = get_live_analysis(bot_coin, bot_tf)
             
             if isinstance(res, dict):
                 st.divider()
                 
-                # Dynamic Header color based on bias
+                # Header showing high-percentage bias
                 s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
                 st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
                 
                 st.write(f"**Bullish: {res['bull_pct']:.1f}% | Bearish: {res['bear_pct']:.1f}%**")
                 st.progress(res['bull_pct'] / 100)
 
+                # Indicators Grid
                 st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
                 col1, col2 = st.columns(2)
                 items = list(res['signals'].items())
@@ -583,7 +588,7 @@ with t_bot:
                 f_col1, f_col2 = st.columns([1, 2])
                 f_col1.metric("11. Fibonacci Zone", res['fib'])
                 
-                # FIX: Check if setup exists before accessing entry/sl/tp
+                # Check for setup - won't display if bias was Neutral
                 with f_col2:
                     if res['setup']:
                         st.success(f"**Execution Setup**\n\nEntry: `{res['setup']['entry']:,.2f}` | SL: `{res['setup']['sl']:,.2f}` | TP: `{res['setup']['tp']:,.2f}`")
@@ -591,4 +596,5 @@ with t_bot:
                         st.warning("⚠️ No Trade Setup: Market bias is currently Neutral.")
             else:
                 st.error(f"Scanner Error: {res}")
+
     st.markdown('</div>', unsafe_allow_html=True)
