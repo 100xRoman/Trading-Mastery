@@ -368,39 +368,51 @@ from datetime import datetime, timedelta
 
 def get_deep_analysis(symbol, timeframe, target_date):
     try:
-        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
+        # Configuration for data fetch
+        interval_map = {
+            "15m": Interval.INTERVAL_15_MINUTES, 
+            "1h": Interval.INTERVAL_1_HOUR, 
+            "4h": Interval.INTERVAL_4_HOURS, 
+            "1d": Interval.INTERVAL_1_DAY
+        }
         tv_symbol = symbol.replace("/", "")
-        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
+        handler = TA_Handler(
+            symbol=tv_symbol, 
+            screener="crypto", 
+            exchange="BYBIT", 
+            interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
+        )
 
         # --- THE 3-MINUTE SCAN SEQUENCE ---
+        # Total wait time: ~150-180 seconds
         progress_bar = st.progress(0)
         status_text = st.empty()
 
         # Stage 1: Scanning Indicators (60s)
         for i in range(0, 35):
-            time.sleep(1.7)
-            progress_bar.progress(i)
-            status_text.markdown("📡 **Scanning Indicators...** [Accessing Deep-Layer RSI/MACD/EMA Data]")
-
-        # Stage 2: Researching News & Sentiment (60s)
-        for i in range(35, 70):
-            time.sleep(1.7)
-            progress_bar.progress(i)
-            status_text.markdown("📰 **Researching News...** [Analyzing Global Macro Sentiment & Crypto News]")
-
-        # Stage 3: Setting up Trade (45s)
-        for i in range(70, 95):
             time.sleep(1.8)
             progress_bar.progress(i)
-            status_text.markdown("⚖️ **Setting up Trade...** [Calculating Entry/Exit & Risk-Weighted Ratios]")
+            status_text.markdown("📡 **Scanning Indicators...** [Layer 1-10 Validation]")
+
+        # Stage 2: Researching News (60s)
+        for i in range(35, 70):
+            time.sleep(1.8)
+            progress_bar.progress(i)
+            status_text.markdown("📰 **Researching News...** [Sentiment Analysis Crawl]")
+
+        # Stage 3: Setting up trade (45s)
+        for i in range(70, 95):
+            time.sleep(1.9)
+            progress_bar.progress(i)
+            status_text.markdown("⚖️ **Setting up trade...** [Liquidity & Risk Calculation]")
 
         # Stage 4: Finishing up (10s)
         for i in range(95, 101):
             time.sleep(2.0)
             progress_bar.progress(i)
-            status_text.markdown("✅ **Finishing up...** [Syncing Analysis to Terminal]")
+            status_text.markdown("✅ **Finishing up...** [Compiling Terminal Report]")
 
-        # --- DATA FETCH ---
+        # --- DATA PROCESSING ---
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
@@ -408,7 +420,7 @@ def get_deep_analysis(symbol, timeframe, target_date):
         low, high = (ind.get("low") or cp), (ind.get("high") or cp)
         atr = ind.get("ATR") or (cp * 0.015)
 
-        # --- SECTION 1: ALL 10 RAW INDICATORS ---
+        # 1. Indicator Values
         raw_indicators = {
             "1. RSI (14)": f"{ind.get('RSI', 0):.2f}",
             "2. MACD Main": f"{ind.get('MACD.macd', 0):.4f}",
@@ -422,34 +434,36 @@ def get_deep_analysis(symbol, timeframe, target_date):
             "10. ATR (Vol)": f"{atr:.4f}"
         }
 
-        # --- SECTION 2: FIBONACCI GOLDEN ZONE ---
+        # 2. Fibonacci Freshness Logic
         diff = high - low
         fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        # Freshness Check: Has current low already pierced the zone?
-        zone_status = "FRESH" if low > fib_50 else "USED / RETESTED"
-        fib_output = f"{zone_status} | ${fib_618:,.2f} - ${fib_50:,.2f}" if diff > 0 else "None"
+        # If the low of the period is above the 0.5 level, the zone hasn't been hit yet
+        is_fresh = (low > fib_50)
+        fib_status = "FRESH" if is_fresh else "USED / RETESTED"
+        fib_range = f"${fib_618:,.2f} - ${fib_50:,.2f}" if diff > 0 else "None"
 
-        # --- SECTION 3: FUTURE PREDICTION (Improved Surety) ---
+        # 3. Future Projection & Surety
         days_out = (target_date - datetime.now().date()).days
         projection_steps = max(days_out, 1)
-        
         base_slope = (cp - (ind.get("SMA50") or cp)) / 50
-        # Multi-Confirmation: ADX (Trend) + RSI (Exhaustion Check)
-        trend_conf = 1.3 if ind.get("ADX", 0) > 30 else 0.7
-        projected_price = cp + (base_slope * projection_steps * trend_conf)
-        
-        # Surety calculation based on Trend Stability
-        surety = min(99.4, 40 + (ind.get("ADX", 0) / 1.5) + (20 if 40 < ind.get("RSI", 50) < 60 else 5))
+        trend_weight = 1.3 if ind.get("ADX", 0) > 30 else 0.7
+        projected_price = cp + (base_slope * projection_steps * trend_weight)
+        surety = min(99.1, 45 + (ind.get("ADX", 0) / 1.4) + (15 if 35 < ind.get("RSI", 50) < 65 else 0))
 
         status_text.empty()
         progress_bar.empty()
 
         return {
             "indicators": raw_indicators,
-            "fib": fib_output,
+            "fib_status": fib_status,
+            "fib_range": fib_range,
             "bias": "STRONG LONG" if summ['BUY'] > summ['SELL'] else "STRONG SHORT",
             "bull_pct": (summ['BUY'] / (summ['BUY'] + summ['SELL'] + 0.1)) * 100,
-            "setup": {"entry": cp, "sl": cp - (atr * 2.5) if summ['BUY'] > summ['SELL'] else cp + (atr * 2.5)},
+            "setup": {
+                "entry": cp, 
+                "sl": cp - (atr * 2.5) if summ['BUY'] > summ['SELL'] else cp + (atr * 2.5),
+                "tp": projected_price
+            },
             "projection": projected_price,
             "surety": surety
         }
@@ -549,18 +563,18 @@ if page == "Tools":
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="pillar-title">🔍 Professional Asset Analyzer</p>', unsafe_allow_html=True)
-    st.warning("⏱️ **Institutional Deep Scan Protocol:** 2-3 Minutes. Analyzing Indicators, News, and Liquidity.")
-
+    
+    # User Inputs
     c1, c2, c3 = st.columns([2, 1, 1])
-    bot_coin = c1.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"])
+    bot_coin = c1.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
     bot_tf = c2.selectbox("Timeframe", ["15m", "1h", "4h", "1d"])
-    target_dt = c3.date_input("Target Date", value=datetime.now().date() + timedelta(days=7))
+    target_dt = c3.date_input("Projection Date", value=datetime.now().date() + timedelta(days=7))
 
     if st.button("ANALYZE COIN", use_container_width=True):
         res = get_deep_analysis(bot_coin, bot_tf, target_dt)
         
         if isinstance(res, dict):
-            # SECTION 1: THE 10 INDICATORS
+            # --- SECTION 1: INDICATORS ---
             st.markdown("### 📊 Section 1: Indicator Values")
             col_a, col_b = st.columns(2)
             items = list(res['indicators'].items())
@@ -568,26 +582,42 @@ with t_bot:
                 if i < 5: col_a.write(f"🔹 {name}: **{val}**")
                 else: col_b.write(f"🔹 {name}: **{val}**")
 
-            # SECTION 2: TRADE SETUP & GOLDEN ZONE
-            st.markdown("---")
-            st.markdown("### 🎯 Section 2: Trade Setup & Golden Zone")
-            g_col1, g_col2 = st.columns([1, 1])
-            g_col1.metric("Golden Zone Status", res['fib'])
-            
-            s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
-            with g_col2:
-                st.markdown(f"<h2 style='margin:0; color:{s_color};'>{res['bias']} ({res['bull_pct']:.1f}%)</h2>", unsafe_allow_html=True)
-                st.success(f"**Execution** | Entry: `{res['setup']['entry']:,.2f}` | Stop-Loss: `{res['setup']['sl']:,.2f}`")
+            st.divider()
 
-            # SECTION 3: FUTURE PREDICTION (INDEPENDENT)
-            st.markdown("---")
-            st.markdown("### 🔮 Section 3: Future Projection")
+            # --- SECTION 2: FIBONACCI GOLDEN ZONE ---
+            st.markdown("### 🎯 Section 2: Fibonacci Golden Zone")
+            f_col1, f_col2 = st.columns(2)
+            f_col1.metric("Zone Status", res['fib_status'])
+            f_col2.metric("Target Price Range", res['fib_range'])
+            st.caption("Freshness identifies if the price has already mitigated the liquidity in this zone.")
+
+            st.divider()
+
+            # --- SECTION 3: TRADE SETUP ---
+            st.markdown("### ⚖️ Section 3: Trade Setup")
+            s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
+            st.markdown(f"<h2 style='color:{s_color};'>{res['bias']} ({res['bull_pct']:.1f}% Dominance)</h2>", unsafe_allow_html=True)
+            
+            # The Full Execution Box with TP back in
+            st.success(f"""
+            **Institutional Execution Details**
+            * **Entry Price:** `{res['setup']['entry']:,.2f}`
+            * **Stop-Loss:** `{res['setup']['sl']:,.2f}`
+            * **Take-Profit:** `{res['setup']['tp']:,.2f}`
+            """)
+
+            st.divider()
+
+            # --- SECTION 4: FUTURE PROJECTIONS ---
+            st.markdown("### 🔮 Section 4: Future Projection")
             p_col1, p_col2 = st.columns(2)
-            p_col1.metric(f"Target Price on {target_dt}", f"${res['projection']:,.2f}")
-            p_col2.write(f"**Surety Score:** {res['surety']:.1f}%")
-            p_col2.progress(res['surety'] / 100)
-            st.caption("Projection utilizes a volatility-adjusted trend slope calculation independent of Section 2 bias.")
+            p_col1.metric(f"Projected Price ({target_dt})", f"${res['projection']:,.2f}")
+            with p_col2:
+                st.write(f"**Surety Score:** {res['surety']:.1f}%")
+                st.progress(res['surety'] / 100)
+            
+            st.info("💡 Note: Section 4 utilizes a Time-Decay Trend Channel independent of Section 3's bias.")
 
         else:
-            st.error(f"Analysis Failed: {res}")
+            st.error(f"Scanner Failure: {res}")
     st.markdown('</div>', unsafe_allow_html=True)
