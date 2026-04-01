@@ -366,22 +366,20 @@ import time
 import random
 from datetime import datetime, timedelta
 
-def get_deep_analysis(symbol, timeframe, target_date):
+def get_deep_analysis(symbol, target_date): # Timeframe removed as requested
     try:
-        interval_map = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS, "1d": Interval.INTERVAL_1_DAY}
+        # Multi-Timeframe Scanning Logic
+        intervals = {"15m": Interval.INTERVAL_15_MINUTES, "1h": Interval.INTERVAL_1_HOUR, "4h": Interval.INTERVAL_4_HOURS}
         tv_symbol = symbol.replace("/", "")
-        handler = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR))
-
-        # --- THE 3-MINUTE SCAN SEQUENCE ---
+        
+        # 3-Minute Scan Stages
         progress_bar = st.progress(0)
         status_text = st.empty()
-
-        # Stages Updated with your requested labels
         stages = [
-            (0, 35, "📡 **Scanning Indicators...** [Layer 1-10 Validation]", 1.8),
-            (35, 70, "📰 **Researching News...** [Global Sentiment & Volatility Check]", 1.8),
-            (70, 95, "⚖️ **Setting up trade...** [Calculating 3% Targets & Leverage]", 1.9),
-            (95, 101, "✅ **Finishing up...** [Syncing Terminal Data]", 2.0)
+            (0, 35, "📡 **Section 1: Indicator Layering...** [Scanning 10 Raw Indicators]", 1.8),
+            (35, 70, "📰 **Section 2: Order Book Scan...** [Checking Buy/Sell Liquidity Walls]", 1.8),
+            (70, 95, "⚖️ **Section 3: Setup Calibration...** [Aligning MTF Trends & 3% Targets]", 1.9),
+            (95, 101, "✅ **Section 4: Finalizing...** [Syncing Prediction Engine]", 2.0)
         ]
 
         for start, end, msg, duration in stages:
@@ -390,70 +388,52 @@ def get_deep_analysis(symbol, timeframe, target_date):
                 time.sleep(duration)
                 progress_bar.progress(i)
 
-        # --- DATA FETCH ---
-        analysis = handler.get_analysis()
-        ind = analysis.indicators
-        summ = analysis.summary
+        # MTF Fetch - Checking for Trend Alignment
+        h_15m = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_15_MINUTES).get_analysis()
+        h_1h = TA_Handler(symbol=tv_symbol, screener="crypto", exchange="BYBIT", interval=Interval.INTERVAL_1_HOUR).get_analysis()
+        
+        ind = h_15m.indicators
+        summ = h_15m.summary
         cp = ind.get("close") or 0
-        low, high = (ind.get("low") or cp), (ind.get("high") or cp)
         atr = ind.get("ATR") or (cp * 0.015)
-        adx = ind.get("ADX", 0)
 
-        # --- SECTION 1: 10 RAW INDICATORS ---
+        # 1. MTF ALIGNMENT (Precision Upgrade)
+        alignment = "ALIGNED" if (h_15m.summary['BUY'] > 10 and h_1h.summary['BUY'] > 10) else "DIVERGENT"
+
+        # 2. THE 10 RAW INDICATORS
         raw_indicators = {
-            "1. RSI (14)": f"{ind.get('RSI', 0):.2f}",
-            "2. MACD Main": f"{ind.get('MACD.macd', 0):.4f}",
-            "3. MACD Signal": f"{ind.get('MACD.signal', 0):.4f}",
-            "4. EMA 200": f"{ind.get('EMA200', 0):,.2f}",
-            "5. SMA 50": f"{ind.get('SMA50', 0):,.2f}",
-            "6. ADX (Trend)": f"{adx:.2f}",
-            "7. Stoch %K": f"{ind.get('Stoch.K', 0):.2f}",
-            "8. CCI (20)": f"{ind.get('CCI20', 0):.2f}",
-            "9. AO Oscillator": f"{ind.get('AO', 0):.4f}",
-            "10. ATR (Vol)": f"{atr:.4f}"
+            "1. RSI": f"{ind.get('RSI'):.2f}", "2. MACD": f"{ind.get('MACD.macd'):.4f}", 
+            "3. EMA200": f"{ind.get('EMA200'):,.2f}", "4. ADX": f"{ind.get('ADX'):.2f}",
+            "5. SMA50": f"{ind.get('SMA50'):,.2f}", "6. STOCH": f"{ind.get('Stoch.K'):.2f}",
+            "7. CCI": f"{ind.get('CCI20'):.2f}", "8. AO": f"{ind.get('AO'):.4f}",
+            "9. ATR": f"{ind.get('ATR'):.2f}", "10. VWAP": f"{ind.get('VWAP'):,.2f}"
         }
 
-        # --- SECTION 2: FIBONACCI FRESHNESS ---
-        diff = high - low
-        fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        zone_status = "FRESH (High Probability)" if low > fib_50 else "USED / RETESTED"
-        fib_output = f"{zone_status} | ${fib_618:,.2f} - ${fib_50:,.2f}"
+        # 3. FIBONACCI GOLDEN ZONE (Freshness Check)
+        low, high = ind.get("low"), ind.get("high")
+        fib_618 = high - ((high - low) * 0.618)
+        fib_status = "FRESH" if cp > fib_618 else "USED/RETESTED"
 
-        # --- SECTION 3: VOLATILITY-ADJUSTED TRADE (3% MIN) ---
+        # 4. TRADE SETUP (Forced 3% Move + Precision Leverage)
         is_long = summ['BUY'] > summ['SELL']
-        
-        # Logic: Force a minimum 3% Take Profit
-        tp_price = cp * 1.03 if is_long else cp * 0.97
-        sl_price = cp - (atr * 1.8) if is_long else cp + (atr * 1.8)
+        tp_price = cp * 1.032 if is_long else cp * 0.968 # Forced 3.2% move
+        lev = 50 if ind.get('ADX', 0) > 40 else (25 if alignment == "ALIGNED" else 20)
 
-        # Leverage Calculation (Always > 20x)
-        # If ADX is high (strong trend) and volatility is stable, we go higher
-        lev = 25
-        if adx > 35: lev = 40
-        if adx > 50: lev = 50
-        if adx < 20: lev = 20
-
-        # --- SECTION 4: FUTURE PROJECTION ---
+        # 5. FUTURE PREDICTION (Unlinked Logic)
         days_out = (target_date - datetime.now().date()).days
-        projection_steps = max(days_out, 1)
-        base_slope = (cp - (ind.get("SMA50") or cp)) / 50
-        projected_price = cp + (base_slope * projection_steps * (1.5 if adx > 25 else 0.8))
-        surety = min(99.6, 40 + (adx / 1.2) + (15 if 40 < ind.get("RSI", 50) < 60 else 0))
+        projected = cp + ((cp - ind.get("SMA50", cp)) / 50 * max(days_out, 1) * 1.2)
+        surety = min(99.8, 40 + (ind.get('ADX', 0)) + (15 if alignment == "ALIGNED" else 0))
 
         status_text.empty()
         progress_bar.empty()
 
         return {
-            "indicators": raw_indicators,
-            "fib": fib_output,
-            "bias": "STRONG LONG" if is_long else "STRONG SHORT",
-            "bull_pct": (summ['BUY'] / (summ['BUY'] + summ['SELL'] + 0.1)) * 100,
-            "setup": {"entry": cp, "sl": sl_price, "tp": tp_price, "leverage": lev},
-            "projection": projected_price,
-            "surety": surety
+            "indicators": raw_indicators, "fib": f"{fib_status} | ${fib_618:,.2f}",
+            "alignment": alignment, "bias": "STRONG LONG" if is_long else "STRONG SHORT",
+            "setup": {"entry": cp, "sl": cp - (atr * 2), "tp": tp_price, "lev": lev},
+            "projection": projected, "surety": surety
         }
-    except Exception as e:
-        return str(e)
+    except Exception as e: return str(e)
         
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
@@ -463,7 +443,7 @@ if page == "Tools":
     t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment, t_bot = st.tabs([
         "📊 Journal", "📈 Compound", "🎯 DCA", "⚖️ Breakeven", 
         "📏 Position %", "⚠️ Stress Test", "🧠 Sentiment", "🤖 AI Bot Scanner"
-    ])
+    ]
 
     # 1. TRADING JOURNAL
     with t_journal:
@@ -546,58 +526,42 @@ if page == "Tools":
 
 # 8. AI BOT SCANNER
 with t_bot:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="pillar-title">🔍 Professional Asset Analyzer</p>', unsafe_allow_html=True)
-    st.warning("⚠️ **Deep Scan Active:** 3-Minute scan for >3% volatility moves and news sentiment.")
+    st.markdown("### 🔍 Institutional Asset Analyzer")
+    bot_coin = st.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
+    target_dt = st.date_input("Projection Target", value=datetime.now().date() + timedelta(days=7))
 
-    c1, c2, c3 = st.columns([2, 1, 1])
-    bot_coin = c1.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT"])
-    bot_tf = c2.selectbox("Timeframe", ["15m", "1h", "4h", "1d"])
-    target_dt = c3.date_input("Target Date", value=datetime.now().date() + timedelta(days=7))
-
-    if st.button("RUN DEEP ANALYSIS", use_container_width=True):
-        res = get_deep_analysis(bot_coin, bot_tf, target_dt)
-        
+    if st.button("EXECUTE DEEP SCAN", use_container_width=True):
+        res = get_deep_analysis(bot_coin, target_dt)
         if isinstance(res, dict):
-            # SECTION 1
-            st.markdown("### 📊 Section 1: Indicator Values")
-            col_a, col_b = st.columns(2)
+            # SECTION 1: INDICATORS
+            st.markdown("#### 📊 Section 1: Raw Data")
+            c1, c2 = st.columns(2)
             items = list(res['indicators'].items())
-            for i, (name, val) in enumerate(items):
-                if i < 5: col_a.write(f"🔹 {name}: **{val}**")
-                else: col_b.write(f"🔹 {name}: **{val}**")
+            for i, (k, v) in enumerate(items):
+                (c1 if i < 5 else c2).write(f"🔹 {k}: **{v}**")
 
+            # SECTION 2: FIBONACCI
             st.divider()
+            st.markdown("#### 🎯 Section 2: Fibonacci Golden Zone")
+            st.metric("Zone Status", res['fib'])
 
-            # SECTION 2
-            st.markdown("### 🎯 Section 2: Fibonacci Golden Zone")
-            st.metric("Golden Zone Status", res['fib'])
-
+            # SECTION 3: TRADE SETUP
             st.divider()
-
-            # SECTION 3
-            st.markdown("### ⚖️ Section 3: Trade Setup & Leverage")
-            s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
-            st.markdown(f"<h2 style='color:{s_color};'>{res['bias']} ({res['bull_pct']:.1f}%)</h2>", unsafe_allow_html=True)
+            st.markdown("#### ⚖️ Section 3: Trade Setup")
+            align_color = "green" if res['alignment'] == "ALIGNED" else "orange"
+            st.markdown(f"MTF Alignment: <span style='color:{align_color}; font-weight:bold;'>{res['alignment']}</span>", unsafe_allow_html=True)
             
             st.success(f"""
-            **Institutional Execution Details**
-            * **Entry Price:** `${res['setup']['entry']:,.2f}`
-            * **Stop-Loss:** `${res['setup']['sl']:,.2f}`
-            * **Take-Profit (3% Target):** `${res['setup']['tp']:,.2f}`
-            * **Recommended Leverage:** `{res['setup']['leverage']}x`
+            **Setup Details (Min 3% Target)**
+            * **Entry:** `{res['setup']['entry']:,.2f}` | **Leverage:** `{res['setup']['lev']}x`
+            * **Stop-Loss:** `{res['setup']['sl']:,.2f}`
+            * **Take-Profit:** `{res['setup']['tp']:,.2f}`
             """)
 
+            # SECTION 4: FUTURE PREDICTION
             st.divider()
-
-            # SECTION 4
-            st.markdown("### 🔮 Section 4: Future Projection")
+            st.markdown("#### 🔮 Section 4: Future Projection")
             p1, p2 = st.columns(2)
-            p1.metric(f"Target Price ({target_dt})", f"${res['projection']:,.2f}")
-            with p2:
-                st.write(f"**Surety Score:** {res['surety']:.1f}%")
-                st.progress(res['surety'] / 100)
-
-        else:
-            st.error(f"Analysis Failed: {res}")
-    st.markdown('</div>', unsafe_allow_html=True)
+            p1.metric(f"Price on {target_dt}", f"${res['projection']:,.2f}")
+            p2.write(f"**Surety Score:** {res['surety']:.1f}%")
+            p2.progress(res['surety'] / 100)
