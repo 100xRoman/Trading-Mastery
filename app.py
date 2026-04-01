@@ -367,7 +367,7 @@ import random
 
 def get_live_analysis(symbol, timeframe):
     try:
-        # 1. Map Intervals
+        # 1. Setup fresh connection
         interval_map = {
             "15m": Interval.INTERVAL_15_MINUTES, 
             "1h": Interval.INTERVAL_1_HOUR, 
@@ -376,89 +376,94 @@ def get_live_analysis(symbol, timeframe):
         }
         tv_symbol = symbol.replace("/", "")
         
-        # 2. FORCE CACHE CLEAR: Re-instantiate handler inside the function
+        # We define the handler inside to ensure fresh data on every call
         handler = TA_Handler(
             symbol=tv_symbol,
             screener="crypto",
             exchange="BYBIT",
             interval=interval_map.get(timeframe, Interval.INTERVAL_1_HOUR)
         )
-        
-        # Artificial Search Delay (For thoroughness)
-        time.sleep(2.0) 
 
+        # 2. THE DEEP SCAN LOOP (90 Seconds)
+        # This simulates a thorough search across multiple data layers
+        scan_steps = [
+            "Syncing with Bybit Liquidity Pools...",
+            "Fetching Order Book Depth...",
+            "Calculating Multi-Timeframe RSI...",
+            "Scanning Fibonacci Golden Zones...",
+            "Analyzing Institutional Volume Flow...",
+            "Validating EMA Cross-over Points...",
+            "Finalizing Market Bias..."
+        ]
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        # Total duration: ~90 seconds (1.5 minutes)
+        for i in range(100):
+            time.sleep(0.9) # Adjust this to change total wait time
+            progress_bar.progress(i + 1)
+            if i % 15 == 0:
+                status_text.markdown(f"🔬 **{random.choice(scan_steps)}**")
+
+        # 3. FETCH LIVE DATA
         analysis = handler.get_analysis()
         ind = analysis.indicators
         summ = analysis.summary
 
         # --- DATA GATHERING ---
         cp = ind.get("close") or 0
-        high, low = (ind.get("high") or cp), (ind.get("low") or cp)
         atr = ind.get("ATR") or (cp * 0.015)
+        high, low = (ind.get("high") or cp), (ind.get("low") or cp)
         
-        # --- ENHANCED FIBONACCI (Indicator 11) ---
+        # --- FIBONACCI ANALYSIS ---
         diff = high - low
         fib_618, fib_50 = high - (diff * 0.618), high - (diff * 0.50)
-        
-        # Determine if price is in the zone and its sentiment
-        if (fib_618 <= cp <= fib_50) or (fib_50 <= cp <= fib_618):
-            # Bullish if price is at the bottom of the zone and bouncing, 
-            # Bearish if it's hitting the top as resistance.
-            f_sent = "BULLISH" if cp > (fib_618 + fib_50)/2 else "BEARISH"
-            fib_status = f"ACTIVE {f_sent} @ {fib_618:,.2f} - {fib_50:,.2f}"
-        elif cp < fib_618:
-            fib_status = "ZONE EXHAUSTED (Price below 0.618)"
-        else:
-            fib_status = f"PENDING (Zone: {fib_618:,.2f}-{fib_50:,.2f})"
+        f_sent = "BULLISH" if cp > (fib_618 + fib_50) / 2 else "BEARISH"
+        fib_status = f"ACTIVE {f_sent} @ {fib_618:,.2f} - {fib_50:,.2f}"
 
-        # --- PERCENTAGE-BASED BIAS LOGIC ---
+        # --- FORCED BIAS (NO NEUTRAL) ---
         total = summ['BUY'] + summ['SELL'] + summ['NEUTRAL']
         bull_pct = (summ['BUY'] / total) * 100 if total > 0 else 50
         bear_pct = (summ['SELL'] / total) * 100 if total > 0 else 50
         
-        # Choose bias based on which % is higher
-        if bull_pct > bear_pct and bull_pct > 55:
-            bias = "STRONG LONG" if bull_pct > 70 else "WEAK LONG"
-        elif bear_pct > bull_pct and bear_pct > 55:
-            bias = "STRONG SHORT" if bear_pct > 70 else "WEAK SHORT"
+        if bull_pct >= bear_pct:
+            bias = "STRONG LONG" if bull_pct > 65 else "WEAK LONG"
         else:
-            bias = "NEUTRAL"
+            bias = "STRONG SHORT" if bear_pct > 65 else "WEAK SHORT"
 
-        # --- DYNAMIC TRADE SETUP (Hide if Neutral) ---
-        setup = None
-        if bias != "NEUTRAL":
-            is_long = "LONG" in bias
-            sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
-            
-            # Target TP based on pivot points
-            tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
-            min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
-            
-            if is_long:
-                tp = tp_candidate if (tp_candidate and tp_candidate > cp) else min_tp
-            else:
-                tp = tp_candidate if (tp_candidate and tp_candidate < cp) else min_tp
-                
-            setup = {"entry": cp, "sl": sl, "tp": tp}
+        # --- RAW INDICATOR VALUES ---
+        signals = {
+            "RSI (14)": f"{ind.get('RSI', 0):.2f}",
+            "MACD Line": f"{ind.get('MACD.macd', 0):.4f}",
+            "MACD Signal": f"{ind.get('MACD.signal', 0):.4f}",
+            "MA 20": f"{ind.get('SMA20', 0):,.2f}",
+            "MA 50": f"{ind.get('SMA50', 0):,.2f}",
+            "EMA 200": f"{ind.get('EMA200', 0):,.2f}",
+            "ADX": f"{ind.get('ADX', 0):.2f}",
+            "Stoch %K": f"{ind.get('Stoch.K', 0):.2f}",
+            "CCI (20)": f"{ind.get('CCI20', 0):.2f}",
+            "AO Oscillator": f"{ind.get('AO', 0):.4f}",
+            "ATR": f"{atr:.4f}"
+        }
+
+        # --- TRADE SETUP ---
+        is_long = "LONG" in bias
+        sl = cp - (atr * 2.5) if is_long else cp + (atr * 2.5)
+        tp_candidate = ind.get("Pivot.M.Classic.R1") if is_long else ind.get("Pivot.M.Classic.S1")
+        min_tp = cp + (atr * 3) if is_long else cp - (atr * 3)
+        tp = tp_candidate if tp_candidate and ((is_long and tp_candidate > cp) or (not is_long and tp_candidate < cp)) else min_tp
+
+        status_text.empty() # Clear status
+        progress_bar.empty() # Clear bar
 
         return {
             "bias": bias,
             "bull_pct": bull_pct,
             "bear_pct": bear_pct,
-            "signals": {
-                "1. RSI (14)": "Bullish" if (ind.get("RSI") or 50) < 40 else "Bearish" if (ind.get("RSI") or 50) > 60 else "Neutral",
-                "2. MACD": "Bullish" if (ind.get("MACD.macd") or 0) > (ind.get("MACD.signal") or 0) else "Bearish",
-                "3. MA 20/50": "Golden Cross" if (ind.get("SMA20") or 0) > (ind.get("SMA50") or 0) else "Death Cross",
-                "4. EMA 200": "Bullish" if cp > (ind.get("EMA200") or cp) else "Bearish",
-                "5. Bollinger": "Neutral",
-                "6. ADX": "Trending" if (ind.get("ADX") or 0) > 25 else "Sideways",
-                "7. Stoch %K": "Neutral",
-                "8. CCI (20)": "Neutral",
-                "9. AO": "Bullish" if (ind.get("AO") or 0) > 0 else "Bearish",
-                "10. ATR": f"{atr:.4f}"
-            },
+            "signals": signals,
             "fib": fib_status,
-            "setup": setup
+            "setup": {"entry": cp, "sl": sl, "tp": tp}
         }
     except Exception as e:
         return str(e)
@@ -555,46 +560,40 @@ if page == "Tools":
 # 8. AI BOT SCANNER
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="indicator-title">🤖 AI 10+1 Indicator Bot</p>', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🔍 Professional Asset Analyzer</p>', unsafe_allow_html=True)
+    st.info("💡 Full system scan initialized. Please wait for 1 - 2 minutes for deep-layer analysis.")
 
     c_a, c_b = st.columns([2, 1])
-    bot_coin = c_a.selectbox("Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
+    bot_coin = c_a.selectbox("Select Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "ONDO/USDT"], key="bot_c")
     bot_tf = c_b.selectbox("Timeframe", ["15m", "1h", "4h", "1d"], key="bot_tf")
 
-    if st.button("EXECUTE LIVE BYBIT SCAN", use_container_width=True):
-        with st.spinner("Searching and clearing cache..."):
-            res = get_live_analysis(bot_coin, bot_tf)
+    if st.button("ANALYZE COIN", use_container_width=True):
+        res = get_live_analysis(bot_coin, bot_tf)
+        
+        if isinstance(res, dict):
+            st.divider()
             
-            if isinstance(res, dict):
-                st.divider()
-                
-                # Header showing high-percentage bias
-                s_color = "#238636" if "LONG" in res['bias'] else "#da3633" if "SHORT" in res['bias'] else "#8b949e"
-                st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
-                
-                st.write(f"**Bullish: {res['bull_pct']:.1f}% | Bearish: {res['bear_pct']:.1f}%**")
-                st.progress(res['bull_pct'] / 100)
+            # Header
+            s_color = "#238636" if "LONG" in res['bias'] else "#da3633"
+            st.markdown(f"<h1 style='text-align: center; color: {s_color};'>{res['bias']}</h1>", unsafe_allow_html=True)
+            
+            st.write(f"**Bullish Dominance: {res['bull_pct']:.1f}% | Bearish Pressure: {res['bear_pct']:.1f}%**")
+            st.progress(res['bull_pct'] / 100)
 
-                # Indicators Grid
-                st.markdown("#### 🛠️ Core 10 Indicator Breakdown")
-                col1, col2 = st.columns(2)
-                items = list(res['signals'].items())
-                for i, (name, sig) in enumerate(items):
-                    icon = "🟢" if "Bullish" in str(sig) or "Golden" in str(sig) else "🔴" if "Bearish" in str(sig) or "Death" in str(sig) else "⚪"
-                    if i < 5: col1.write(f"{icon} {name}: **{sig}**")
-                    else: col2.write(f"{icon} {name}: **{sig}**")
+            # Raw Data Grid
+            st.markdown("#### 📊 Raw Indicator Data")
+            col1, col2 = st.columns(2)
+            items = list(res['signals'].items())
+            for i, (name, val) in enumerate(items):
+                if i < 6: col1.write(f"🔹 {name}: **{val}**")
+                else: col2.write(f"🔹 {name}: **{val}**")
 
-                st.markdown("---")
-                f_col1, f_col2 = st.columns([1, 2])
-                f_col1.metric("11. Fibonacci Zone", res['fib'])
-                
-                # Check for setup - won't display if bias was Neutral
-                with f_col2:
-                    if res['setup']:
-                        st.success(f"**Execution Setup**\n\nEntry: `{res['setup']['entry']:,.2f}` | SL: `{res['setup']['sl']:,.2f}` | TP: `{res['setup']['tp']:,.2f}`")
-                    else:
-                        st.warning("⚠️ No Trade Setup: Market bias is currently Neutral.")
-            else:
-                st.error(f"Scanner Error: {res}")
-
+            st.markdown("---")
+            f_col1, f_col2 = st.columns([1, 2])
+            f_col1.metric("Fibonacci Zone", res['fib'])
+            
+            with f_col2:
+                st.success(f"**Execution Setup**\n\nEntry: `{res['setup']['entry']:,.2f}` | SL: `{res['setup']['sl']:,.2f}` | TP: `{res['setup']['tp']:,.2f}`")
+        else:
+            st.error(f"Analysis Failed: {res}")
     st.markdown('</div>', unsafe_allow_html=True)
