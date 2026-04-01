@@ -367,14 +367,20 @@ import random
 from datetime import datetime, timedelta
 
 def get_titan_apex_ultra(symbol, target_date): 
- try: 
-    tv_symbol = symbol.replace("/", "")
 # =========================
 # 🧠 GLOBAL ML STORAGE
 # =========================
 ml_dataset = []
 ml_model = None
 
+# =========================
+# SYMBOL HANDLING
+# =========================
+try:
+    tv_symbol = symbol.replace("/", "")
+except Exception as e:
+    print(f"Error processing symbol '{symbol}': {e}")
+    tv_symbol = symbol  # fallback to original symbol if error occurs
 
 # =========================
 # 🔥 CORE STRATEGY
