@@ -465,8 +465,8 @@ with t_journal:
         t_cap = c1.number_input("Capital ($)", min_value=0.0, value=100.0)
         t_lev = c2.number_input("Leverage", min_value=1, value=10)
         p_mode = c2.radio("Input", ["%", "$"])
-            t_val = c3.number_input("P&L Value", value=0.0)
-            if st.form_submit_button("Log Position"):
+        t_val = c3.number_input("P&L Value", value=0.0)
+        if st.form_submit_button("Log Position"):
                 usd = t_val if p_mode == "$" else (t_val/100)*t_cap
                 pct = t_val if p_mode == "%" else (t_val/t_cap)*100
                 st.session_state.history.append({"Type": t_type, "Capital": t_cap, "P&L $": usd, "P&L %": pct})
