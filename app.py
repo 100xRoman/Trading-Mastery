@@ -374,15 +374,16 @@ def get_titan_apex_ultra(symbol, target_date):
     ml_dataset = []
     ml_model = None
 
-# =========================
-# SYMBOL HANDLING
-# =========================
-try:
-    tv_symbol = symbol.replace("/", "")
-except Exception as e:
-    print(f"Error processing symbol '{symbol}': {e}")
-    tv_symbol = symbol  # fallback to original symbol if error occurs
-
+    # =========================
+    # SYMBOL HANDLING
+    # =========================
+    try:
+        tv_symbol = symbol.replace("/", "")
+    except Exception as e:
+        # ✅ This works because `symbol` is defined in the function arguments
+        print(f"Error processing symbol '{symbol}': {e}")
+        tv_symbol = symbol  # fallback to original symbol if error occurs
+        
 # =========================
 # 🔥 CORE STRATEGY
 # =========================
