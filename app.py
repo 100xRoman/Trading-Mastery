@@ -712,51 +712,110 @@ with t_journal:
 # 8. AI BOT SCANNER
 with t_bot:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="pillar-title">🏛️ APEX TITAN ULTRA: 99.99% Terminal</p>', unsafe_allow_html=True)
+    st.markdown('<p class="pillar-title">🏛️ TITAN EDGE TERMINAL</p>', unsafe_allow_html=True)
     
     col_a, col_b = st.columns([2, 1])
-    bot_asset = col_a.selectbox("Target Asset", ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT", "PEPE/USDT"])
-    target_dt = col_b.date_input("Analysis Target", value=datetime.now().date() + timedelta(days=7))
+    bot_asset = col_a.selectbox(
+        "Target Asset",
+        ["BTC/USDT", "ETH/USDT", "SOL/USDT", "ONDO/USDT", "PEPE/USDT"]
+    )
+    target_dt = col_b.date_input(
+        "Analysis Target",
+        value=datetime.now().date() + timedelta(days=7)
+    )
 
-    if st.button("EXECUTE ULTRA DEEP SCAN", use_container_width=True):
-        res = get_titan_apex_ultra(bot_asset, target_dt)
-        
-        if isinstance(res, dict):
-            # Section 1: Indicators
-            st.markdown("#### 📊 Section 1: Core Indicators")
-            i_c1, i_c2 = st.columns(2)
-            items = list(res['indicators'].items())
-            for i, (k, v) in enumerate(items):
-                (i_c1 if i < 5 else i_c2).write(f"🔹 {k}: **{v}**")
+    if st.button("⚡ EXECUTE EDGE SCAN", use_container_width=True):
 
-            # Section 2: Price Action & Liquidity
+        # ⚠️ NOTE: your new engine needs a data row, not just symbol
+        # For now, assume you have latest row as `latest_data_row`
+        latest_data_row = get_latest_row(bot_asset)  # <-- you must implement this
+
+        res = titan_edge_engine(bot_asset, latest_data_row)
+
+        if isinstance(res, dict) and res.get("signal") != "NO TRADE":
+
+            # =========================
+            # 📊 SECTION 1: SIGNAL OVERVIEW
+            # =========================
+            st.markdown("#### 📊 Signal Overview")
+            s1, s2, s3 = st.columns(3)
+
+            s1.metric("Signal", res["signal"])
+            s2.metric("Quality Score", res["score"])
+            s3.metric("Risk/Reward", f"{res['rr']:.2f}")
+
+            # =========================
+            # 🎯 SECTION 2: ENTRY ZONE
+            # =========================
             st.divider()
-            st.markdown("#### 🕯️ Section 2: Market Context")
-            l1, l2, l3 = st.columns(3)
-            l1.metric("Candle Pattern", res['pattern'])
-            l2.metric("Liquidity Wall", res['liquidity'])
-            l3.metric("Macro Bias", res['bias'])
+            st.markdown("#### 🎯 Entry Zone")
 
-            # Section 3: The Setup
+            e1, e2 = st.columns(2)
+            e1.metric("Entry Price", f"${res['entry']:,.2f}")
+            e2.metric("Take Profit", f"${res['tp']:,.2f}")
+
+            st.warning(f"🛑 Stop Loss: ${res['sl']:,.2f}")
+
+            # =========================
+            # 📈 SECTION 3: MARKET CONDITIONS
+            # =========================
             st.divider()
-            st.markdown("#### ⚖️ Section 3: High-Precision Setup")
+            st.markdown("#### 📈 Market Conditions")
+
+            m1, m2, m3 = st.columns(3)
+            m1.metric("RSI", f"{res['rsi']:.2f}")
+            m2.metric("ADX (Trend Strength)", f"{res['adx']:.2f}")
+            m3.metric("Volume Ratio", f"{res['volume_ratio']:.2f}x")
+
+            # =========================
+            # 🔥 SECTION 4: SMART SIGNALS
+            # =========================
+            st.divider()
+            st.markdown("#### 🔥 Smart Money Signals")
+
+            sm1, sm2 = st.columns(2)
+            sm1.metric("Smart Money Activity", "YES" if res["score"] >= 4 else "NO")
+            sm2.metric("Liquidity Sweep", "YES" if res["score"] >= 5 else "NO")
+
+            # =========================
+            # 🤖 SECTION 5: AI CONFIDENCE
+            # =========================
+            st.divider()
+            st.markdown("#### 🤖 AI Confidence Engine")
+
+            if ml_model:
+                prob = ml_model.predict_proba([[
+                    res["rsi"],
+                    res["adx"],
+                    res["volume_ratio"],
+                    res["rr"],
+                    res["score"]
+                ]])[0][1]
+
+                st.metric("Win Probability", f"{prob*100:.2f}%")
+                st.progress(prob)
+            else:
+                st.info("ML model not trained yet (run backtest first)")
+
+            # =========================
+            # 🧠 SECTION 6: EDGE SUMMARY
+            # =========================
+            st.divider()
+            st.markdown("#### 🧠 Edge Summary")
+
             st.success(f"""
-            **Titan Execution (Targeting 4.5% Move)**
-            * **Entry:** `${res['setup']['entry']:,.2f}` | **Leverage:** `{res['setup']['lev']}x`
-            * **Stop-Loss (Apex 2.8x ATR):** `${res['setup']['sl']:,.2f}`
-            * **Take-Profit (Titan Extension):** `${res['setup']['tp']:,.2f}`
+            **Execution Plan**
+            • Direction: **{res['signal']}**  
+            • Entry: `${res['entry']:,.2f}`  
+            • TP: `${res['tp']:,.2f}`  
+            • SL: `${res['sl']:,.2f}`  
+            • RR: `{res['rr']:.2f}`  
+            • Score: `{res['score']}/6`  
+
+            ⚡ *Only high-confluence setups are shown.*
             """)
 
-            # Section 4: Projection
-            st.divider()
-            st.markdown("#### 🔮 Section 4: 99.99% Future Projection")
-            p_col, s_col = st.columns(2)
-            p_col.metric(f"Projected Price", f"${res['projection']:,.2f}")
-            with s_col:
-                st.write(f"**Surety Score:** {res['surety']:.2f}%")
-                st.progress(res['surety'] / 100)
-            
-            st.info("💡 **Institutional Logic:** This setup identifies 'Fair Value Gaps' and matches them with Candlestick reversals for maximum entry precision.")
         else:
-            st.error(f"Titan Error: {res}")
+            st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
+
     st.markdown('</div>', unsafe_allow_html=True)
