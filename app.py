@@ -451,16 +451,19 @@ t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment, t_bot = st.tab
     "🤖 AI Bot Scanner"
 ])
 
-    # 1. TRADING JOURNAL
-    with t_journal:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
-        if 'history' not in st.session_state: st.session_state.history = []
-        with st.form("log_trade"):
-            c1, c2, c3 = st.columns(3)
-            t_type = c1.selectbox("Type", ["LONG", "SHORT"])
-            t_cap = c1.number_input("Capital ($)", value=100.0)
-            t_lev = c2.number_input("Leverage", value=10)
+   # 1. TRADING JOURNAL
+with t_journal:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
+    
+    if 'history' not in st.session_state: 
+        st.session_state.history = []
+        
+    with st.form("log_trade"):
+        c1, c2, c3 = st.columns(3)
+        t_type = c1.selectbox("Type", ["LONG", "SHORT"])
+        t_cap = c1.number_input("Capital ($)", min_value=0.0, value=100.0)
+        t_lev = c2.number_input("Leverage", min_value=1, value=10)
             p_mode = c2.radio("Input", ["%", "$"])
             t_val = c3.number_input("P&L Value", value=0.0)
             if st.form_submit_button("Log Position"):
