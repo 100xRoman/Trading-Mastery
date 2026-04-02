@@ -836,19 +836,17 @@ st.success(f"""
 ⚡ *Only high-confluence setups are shown.*
 """)
 
-            st.success(f"""
-            **Execution Plan**
-            • Direction: **{res['signal']}**  
-            • Entry: `${res['entry']:,.2f}`  
-            • TP: `${res['tp']:,.2f}`  
-            • SL: `${res['sl']:,.2f}`  
-            • RR: `{res['rr']:.2f}`  
-            • Score: `{res['score']}/6`  
+if isinstance(res, dict) and res.get("signal") != "NO TRADE":
+    st.success(f"""
+**Execution Plan**
+• Direction: **{res['signal']}**  
+• Entry: `${res['setup']['entry']:,.2f}`  
+• TP: `${res['setup']['tp']:,.2f}`  
+• SL: `${res['setup']['sl']:,.2f}`  
+• RR: `{res['rr']:.2f}`  
+• Score: `{res['score']}/6`  
 
-            ⚡ *Only high-confluence setups are shown.*
-            """)
-
-        else:
-            st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+⚡ *Only high-confluence setups are shown.*
+""")
+else:
+    st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
