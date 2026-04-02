@@ -833,8 +833,12 @@ st.success(f"""
 • Score: `{res.get('score', 0)}/6`  
 
 if isinstance(res, dict) and res.get("signal") != "NO TRADE":
-    st.success("[!] Only high-confluence setups are shown.")
+    st.success(
+        f"[!] Only high-confluence setups are shown."
+    )
 else:
-    st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
+    st.error(
+        f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}"
+    )
 
 st.markdown('</div>', unsafe_allow_html=True)
