@@ -733,25 +733,30 @@ with t_bot:
     )
 
     if st.button("⚡ EXECUTE EDGE SCAN", use_container_width=True):
+        # ⚠️ Get the latest data row (you must implement this)
+        latest_data_row = get_latest_row(bot_asset)
 
-        # ⚠️ NOTE: your new engine needs a data row, not just symbol
-        # For now, assume you have latest row as `latest_data_row`
-        latest_data_row = get_latest_row(bot_asset)  # <-- you must implement this
-
+        # Run your engine
         res = titan_edge_engine(bot_asset, latest_data_row)
 
+        # Check result
         if isinstance(res, dict) and res.get("signal") != "NO TRADE":
+            # =========================
+            # 📊 Signal Overview
+            # =========================
+            st.divider()
+            st.markdown("#### 📊 Signal Overview")
 
-# =========================
-# 📊 Signal Overview
-# =========================
-st.divider()
-st.markdown("#### 📊 Signal Overview")
+            s1, s2, s3 = st.columns(3)
+            s1.metric("Signal", res["signal"])
+            s2.metric("Quality Score", res["score"])
+            s3.metric("Risk/Reward", f"{res['rr']:.2f}")
 
-s1, s2, s3 = st.columns(3)
-s1.metric("Signal", res["signal"])
-s2.metric("Quality Score", res["score"])
-s3.metric("Risk/Reward", f"{res['rr']:.2f}")
+            # =========================
+            # 🎯 Entry Zone
+            # =========================
+            st.divider()
+            st.markdown("#### 🎯 Entry Zone")
 
 # =========================
 # 🎯 SECTION 2: ENTRY ZONE
