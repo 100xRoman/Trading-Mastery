@@ -742,10 +742,10 @@ with t_bot:
 
         if isinstance(res, dict) and res.get("signal") != "NO TRADE":
 
-            # =========================
-            # 📊 SECTION 1: SIGNAL OVERVIEW
-            # =========================
-            st.markdown("#### 📊 Signal Overview")
+ # =========================
+ # 📊 SECTION 1: SIGNAL OVERVIEW
+ # =========================
+ st.markdown("#### 📊 Signal Overview")
 s1, s2, s3 = st.columns(3)
 
 s1.metric("Signal", res["signal"])
@@ -767,53 +767,68 @@ e2.metric("Take Profit", f"${res['setup']['tp']:,.2f}")
 
 # Display Stop Loss below the columns
 st.warning(f"🛑 Stop Loss: ${res['setup']['sl']:,.2f}")
+# =========================
+# 📈 SECTION 3: MARKET CONDITIONS
+# =========================
+st.divider()
+st.markdown("#### 📈 Market Conditions")
 
-            # =========================
-            # 📈 SECTION 3: MARKET CONDITIONS
-            # =========================
-            st.divider()
-            st.markdown("#### 📈 Market Conditions")
+# Ensure res has these keys
+m1, m2, m3 = st.columns(3)
+m1.metric("RSI", f"{res['rsi']:.2f}")
+m2.metric("ADX (Trend Strength)", f"{res['adx']:.2f}")
+m3.metric("Volume Ratio", f"{res['volume_ratio']:.2f}x")
 
-            m1, m2, m3 = st.columns(3)
-            m1.metric("RSI", f"{res['rsi']:.2f}")
-            m2.metric("ADX (Trend Strength)", f"{res['adx']:.2f}")
-            m3.metric("Volume Ratio", f"{res['volume_ratio']:.2f}x")
+# =========================
+# 🔥 SECTION 4: SMART SIGNALS
+# =========================
+st.divider()
+st.markdown("#### 🔥 Smart Money Signals")
 
-            # =========================
-            # 🔥 SECTION 4: SMART SIGNALS
-            # =========================
-            st.divider()
-            st.markdown("#### 🔥 Smart Money Signals")
+sm1, sm2 = st.columns(2)
+sm1.metric("Smart Money Activity", "YES" if res["score"] >= 4 else "NO")
+sm2.metric("Liquidity Sweep", "YES" if res["score"] >= 5 else "NO")
 
-            sm1, sm2 = st.columns(2)
-            sm1.metric("Smart Money Activity", "YES" if res["score"] >= 4 else "NO")
-            sm2.metric("Liquidity Sweep", "YES" if res["score"] >= 5 else "NO")
+# =========================
+# 🤖 SECTION 5: AI CONFIDENCE
+# =========================
+st.divider()
+st.markdown("#### 🤖 AI Confidence Engine")
 
-            # =========================
-            # 🤖 SECTION 5: AI CONFIDENCE
-            # =========================
-            st.divider()
-            st.markdown("#### 🤖 AI Confidence Engine")
+if 'ml_model' in globals() and ml_model is not None:
+    try:
+        prob = ml_model.predict_proba([[
+            res["rsi"],
+            res["adx"],
+            res["volume_ratio"],
+            res["rr"],
+            res["score"]
+        ]])[0][1]
 
-            if ml_model:
-                prob = ml_model.predict_proba([[
-                    res["rsi"],
-                    res["adx"],
-                    res["volume_ratio"],
-                    res["rr"],
-                    res["score"]
-                ]])[0][1]
+        st.metric("Win Probability", f"{prob*100:.2f}%")
+        st.progress(prob)
+    except Exception as e:
+        st.error(f"ML model prediction error: {e}")
+else:
+    st.info("ML model not trained yet (run backtest first)")
 
-                st.metric("Win Probability", f"{prob*100:.2f}%")
-                st.progress(prob)
-            else:
-                st.info("ML model not trained yet (run backtest first)")
+# =========================
+# 🧠 SECTION 6: EDGE SUMMARY
+# =========================
+st.divider()
+st.markdown("#### 🧠 Edge Summary")
 
-            # =========================
-            # 🧠 SECTION 6: EDGE SUMMARY
-            # =========================
-            st.divider()
-            st.markdown("#### 🧠 Edge Summary")
+st.success(f"""
+**Execution Plan**
+• Direction: **{res['signal']}**  
+• Entry: `${res['setup']['entry']:,.2f}`  
+• TP: `${res['setup']['tp']:,.2f}`  
+• SL: `${res['setup']['sl']:,.2f}`  
+• RR: `{res['rr']:.2f}`  
+• Score: `{res['score']}/6`  
+
+⚡ *Only high-confluence setups are shown.*
+""")
 
             st.success(f"""
             **Execution Plan**
