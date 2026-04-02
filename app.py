@@ -823,7 +823,7 @@ else:
 # =========================
 st.divider()
 st.markdown("#### 🧠 Edge Summary")
-st.success(f"""
+st.success(f"⚡ Only high-confluence setups are shown.")
 **Execution Plan**
 • Direction: **{res.get('signal', 'N/A')}**  
 • Entry: `${res.get('setup', {}).get('entry', 0):,.2f}`  
