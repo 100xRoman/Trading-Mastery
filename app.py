@@ -821,24 +821,19 @@ else:
 # =========================
 # 🧠 SECTION 6: EDGE SUMMARY
 # =========================
-st.divider()
-st.markdown("#### 🧠 Edge Summary")
-st.success(f"⚡ Only high-confluence setups are shown.")
-**Execution Plan**
-• Direction: **{res.get('signal', 'N/A')}**  
-• Entry: `${res.get('setup', {}).get('entry', 0):,.2f}`  
-• TP: `${res.get('setup', {}).get('tp', 0):,.2f}`  
-• SL: `${res.get('setup', {}).get('sl', 0):,.2f}`  
-• RR: `{res.get('rr', 0):.2f}`  
-• Score: `{res.get('score', 0)}/6`  
-
-if isinstance(res, dict) and res.get("signal") != "NO TRADE":
+if 'setup' in res:
     st.success(
-        f"[!] Only high-confluence setups are shown."
+        f"**Execution Plan**\n"
+        f"• Direction: **{res.get('signal', 'N/A')}**\n"
+        f"• Entry: ${res['setup'].get('entry', 0):,.2f}\n"
+        f"• TP: ${res['setup'].get('tp', 0):,.2f}\n"
+        f"• SL: ${res['setup'].get('sl', 0):,.2f}\n"
+        f"• RR: {res.get('rr', 0):.2f}\n"
+        f"• Score: {res.get('score', 0)}/6\n\n"
+        f"⚡ Only high-confluence setups are shown."
     )
 else:
-    st.error(
-        f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}"
+    st.info("No trade setup available for this signal.")
     )
 
 st.markdown('</div>', unsafe_allow_html=True)
