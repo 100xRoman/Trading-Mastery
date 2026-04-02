@@ -823,30 +823,18 @@ else:
 # =========================
 st.divider()
 st.markdown("#### 🧠 Edge Summary")
-
 st.success(f"""
 **Execution Plan**
-• Direction: **{res['signal']}**  
-• Entry: `${res['setup']['entry']:,.2f}`  
-• TP: `${res['setup']['tp']:,.2f}`  
-• SL: `${res['setup']['sl']:,.2f}`  
-• RR: `{res['rr']:.2f}`  
-• Score: `{res['score']}/6`  
+• Direction: **{res.get('signal', 'N/A')}**  
+• Entry: `${res.get('setup', {}).get('entry', 0):,.2f}`  
+• TP: `${res.get('setup', {}).get('tp', 0):,.2f}`  
+• SL: `${res.get('setup', {}).get('sl', 0):,.2f}`  
+• RR: `{res.get('rr', 0):.2f}`  
+• Score: `{res.get('score', 0)}/6`  
 
 ⚡ *Only high-confluence setups are shown.*
 """)
+        else:
+            st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
 
-if isinstance(res, dict) and res.get("signal") != "NO TRADE":
-    st.success(f"""
-**Execution Plan**
-• Direction: **{res['signal']}**  
-• Entry: `${res['setup']['entry']:,.2f}`  
-• TP: `${res['setup']['tp']:,.2f}`  
-• SL: `${res['setup']['sl']:,.2f}`  
-• RR: `{res['rr']:.2f}`  
-• Score: `{res['score']}/6`  
-
-⚡ *Only high-confluence setups are shown.*
-""")
-else:
-    st.error(f"❌ No Trade Opportunity\n\nReason: {res.get('reason', 'Low edge conditions')}")
+        st.markdown('</div>', unsafe_allow_html=True)
