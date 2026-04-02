@@ -752,17 +752,21 @@ s1.metric("Signal", res["signal"])
 s2.metric("Quality Score", res["score"])
 s3.metric("Risk/Reward", f"{res['rr']:.2f}")
 
-            # =========================
-            # 🎯 SECTION 2: ENTRY ZONE
-            # =========================
-            st.divider()
-            st.markdown("#### 🎯 Entry Zone")
+# =========================
+# 🎯 SECTION 2: ENTRY ZONE
+# =========================
+st.divider()
+st.markdown("#### 🎯 Entry Zone")
 
-            e1, e2 = st.columns(2)
-            e1.metric("Entry Price", f"${res['entry']:,.2f}")
-            e2.metric("Take Profit", f"${res['tp']:,.2f}")
+# Create 2 columns for Entry and Take Profit
+e1, e2 = st.columns(2)
 
-            st.warning(f"🛑 Stop Loss: ${res['sl']:,.2f}")
+# Display metrics inside columns
+e1.metric("Entry Price", f"${res['setup']['entry']:,.2f}")
+e2.metric("Take Profit", f"${res['setup']['tp']:,.2f}")
+
+# Display Stop Loss below the columns
+st.warning(f"🛑 Stop Loss: ${res['setup']['sl']:,.2f}")
 
             # =========================
             # 📈 SECTION 3: MARKET CONDITIONS
