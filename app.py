@@ -746,11 +746,11 @@ with t_bot:
             # 📊 SECTION 1: SIGNAL OVERVIEW
             # =========================
             st.markdown("#### 📊 Signal Overview")
-            s1, s2, s3 = st.columns(3)
+s1, s2, s3 = st.columns(3)
 
-            s1.metric("Signal", res["signal"])
-            s2.metric("Quality Score", res["score"])
-            s3.metric("Risk/Reward", f"{res['rr']:.2f}")
+s1.metric("Signal", res["signal"])
+s2.metric("Quality Score", res["score"])
+s3.metric("Risk/Reward", f"{res['rr']:.2f}")
 
             # =========================
             # 🎯 SECTION 2: ENTRY ZONE
