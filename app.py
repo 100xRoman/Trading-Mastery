@@ -796,7 +796,7 @@ st.markdown("#### 📈 Market Conditions")
 
 # Ensure res has these keys
 m1, m2, m3 = st.columns(3)
-m1.metric("RSI", f"{res['rsi']:.2f}")
+m1.metric("RSI", f"{res.get('rsi', 0):.2f}")
 m2.metric("ADX (Trend Strength)", f"{res['adx']:.2f}")
 m3.metric("Volume Ratio", f"{res['volume_ratio']:.2f}x")
 
