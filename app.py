@@ -765,7 +765,8 @@ st.divider()
 st.markdown("#### 🎯 Entry Zone")
 
 # Safely get setup values
-setup = res.get('setup', {})  # empty dict if 'setup' doesn't exist
+res = res if 'res' in globals() else {}  # fallback to empty dict
+setup = res.get('setup', {})             # safe even if 'setup' missing
 
 # Try to convert values to float; fallback to None
 def safe_float(value):
