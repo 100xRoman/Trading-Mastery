@@ -278,7 +278,7 @@ with t1:
         st.video("https://www.youtube.com/watch?v=eyuLdAqkeX0")
 
 # --- PAGE 2: CHARTS ---
-elif page == "Charts":
+if page == "Charts":
     st.title("📊 Chart")
 
     symbol_map = {
