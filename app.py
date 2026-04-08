@@ -832,8 +832,8 @@ if 'setup' in res:
         f"• Score: {res.get('score', 0)}/6\n\n"
         f"⚡ Only high-confluence setups are shown."
     )
+    
 else:
     st.info("No trade setup available for this signal.")
-    )
 
 st.markdown('</div>', unsafe_allow_html=True)
