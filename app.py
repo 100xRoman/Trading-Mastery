@@ -33,13 +33,13 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Trading Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("TERMINAL MENU", ["Mastery (Learning)", "Charts", "Tools"])
+    page = st.radio("MENU", ["Mastery (Learning)", "Charts", "Tools"])
     st.divider()
-    st.caption("℗100xroman")
+    st.caption("℗Romanstrading")
 
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
-    st.title("🏛️ Institutional Trading Academy")
+    st.title("🏛️ Indicators")
     st.info("Advanced Technical Analysis & Market Psychology Protocol")
 
     # --- 1. RSI (RELATIVE STRENGTH INDEX) ---
@@ -198,23 +198,37 @@ if page == "Mastery (Learning)":
 
 # --- THE FIVE PILLARS: INSTITUTIONAL PROTOCOL ---
     st.divider()
-    st.header("🏛️ The Five Pillars of Institutional Trading")
+    st.header("🏛️ Technical Analysis")
     st.info("These pillars represent the 'Logic' behind why price moves. Indicators tell you 'When,' but Pillars tell you 'Why.'")
     
     t1, t2, t3, t4, t5 = st.tabs(["🏦 Liquidity", "🕯️ Price Action", "🌊 Volume", "📈 Structure", "🌎 Fundamental"])
 
-    with t1:
-        st.subheader("🏦 Pillar 1: Liquidity & Institutional Whale Hunts")
-        st.write("""
-        Liquidity is the lifeblood of the market. In the institutional world, a "Whale" (Banks, Hedge Funds) cannot simply click 'Buy' or 'Sell' because their orders are so massive they would move the price against themselves. To fill a $500M buy order, they need $500M worth of sell orders. 
-        
-        **The Protocol:** Whales look for "Retail Liquidity Pools"—areas where thousands of retail traders have placed their Stop Losses (which are actually sell orders). These pools usually sit just above double tops or just below double bottoms. The Whale will intentionally push the price into these zones to "Hunt" those stops, creating a surge of sell orders that allows the Whale to fill their massive buy position at a discount.
-        
-        **How to Trade It:** Never be the liquidity. Instead of entering at a support level, wait for the price to "Sweep" (break) the support, hunt the stops, and then quickly reclaim the level. This is called a 'SFP' (Swing Failure Pattern). Buy the sweep, not the support.
-        """)
-        
-        st.video("https://www.youtube.com/watch?v=9_G_S_InO_4")
+with t1:
+    st.subheader("Liquidity & Whale Behavior")
+    st.write("""
+    Liquidity is one of the most important forces in any market. Large participants such as banks and hedge funds cannot simply execute massive buy or sell orders without affecting price. To enter a $500M position, they need enough opposing orders in the market to fill it efficiently.
 
+    **How Liquidity Works:**
+    In every market, clusters of orders tend to build up in predictable areas—especially around obvious highs and lows. Retail traders commonly place stop losses above resistance (highs) and below support (lows). These areas form what is known as liquidity pools.
+
+    When price moves into these zones, those stop losses are triggered, creating a surge of market orders. This influx of liquidity allows larger players to enter or exit positions with minimal slippage. :contentReference[oaicite:0]{index=0}
+
+    **What This Looks Like on a Chart:**
+    Price will often break above a high or below a low, triggering stops and creating what appears to be a breakout. However, this move can quickly reverse once liquidity has been collected. This is commonly referred to as a liquidity sweep or Swing Failure Pattern (SFP).
+
+    **How to Trade It:**
+    Instead of entering directly at support or resistance, wait for price to move beyond the level and then reclaim it. The key idea is to avoid being part of the liquidity and instead trade after it has been taken.
+
+    The highest probability setups usually include:
+    - A clear sweep of a key level (high/low)
+    - Strong rejection (wicks or fast reversal)
+    - Quick reclaim back above or below the level
+
+    In simple terms: don’t trade the level — trade the reaction after liquidity is taken.
+    """)
+
+    st.video("https://www.youtube.com/watch?v=0UTvF4SWdQM")
+    
     with t2:
         st.subheader("🕯️ Pillar 2: Price Action & Fair Value Gaps (FVG)")
         st.write("""
