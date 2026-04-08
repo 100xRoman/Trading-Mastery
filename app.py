@@ -767,9 +767,9 @@ st.markdown("#### 🎯 Entry Zone")
 # Create 2 columns for Entry and Take Profit
 e1, e2 = st.columns(2)
 
-# Display metrics inside columns
-e1.metric("Entry Price", f"${res['setup']['entry']:,.2f}")
-e2.metric("Take Profit", f"${res['setup']['tp']:,.2f}")
+# Display metrics
+e1.metric("Entry Price", f"${entry_price:,.2f}" if entry_price is not None else "N/A")
+e2.metric("Take Profit", f"${take_profit:,.2f}" if take_profit is not None else "N/A")
 
 # Display Stop Loss below the columns
 st.warning(f"🛑 Stop Loss: ${res['setup']['sl']:,.2f}")
