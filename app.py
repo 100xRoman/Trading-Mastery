@@ -623,17 +623,14 @@ def monte_carlo(trades, runs=100):
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
     
-# Updated Tab Navigation to include AI Bot
 t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
-    "Journal", "Compound", "DCA", "BreakEven", "Positions", "Stress Test", "Sentiment"
-])
-    "📊 Journal", 
-    "📈 Compound", 
-    "🎯 DCA", 
-    "⚖️ Breakeven", 
-    "📏 Position %", 
-    "⚠️ Stress Test", 
-    "🧠 Sentiment", 
+    "📊 Journal",
+    "📈 Compound",
+    "🎯 DCA",
+    "⚖️ Breakeven",
+    "📏 Position %",
+    "⚠️ Stress Test",
+    "🧠 Sentiment"
 ])
 
    # 1. TRADING JOURNAL
