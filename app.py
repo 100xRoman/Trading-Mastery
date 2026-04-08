@@ -764,15 +764,29 @@ with t_bot:
 st.divider()
 st.markdown("#### 🎯 Entry Zone")
 
+# Safely get setup values
+setup = res.get('setup', {})  # empty dict if 'setup' doesn't exist
+
+# Try to convert values to float; fallback to None
+def safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+entry_price = safe_float(setup.get('entry'))
+take_profit = safe_float(setup.get('tp'))
+stop_loss = safe_float(setup.get('sl'))
+
 # Create 2 columns for Entry and Take Profit
 e1, e2 = st.columns(2)
 
-# Display metrics
+# Display metrics safely
 e1.metric("Entry Price", f"${entry_price:,.2f}" if entry_price is not None else "N/A")
 e2.metric("Take Profit", f"${take_profit:,.2f}" if take_profit is not None else "N/A")
 
 # Display Stop Loss below the columns
-st.warning(f"🛑 Stop Loss: ${res['setup']['sl']:,.2f}")
+st.warning(f"🛑 Stop Loss: ${stop_loss:,.2f}" if stop_loss is not None else "🛑 Stop Loss: N/A")
 # =========================
 # 📈 SECTION 3: MARKET CONDITIONS
 # =========================
