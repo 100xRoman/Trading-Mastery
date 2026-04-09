@@ -914,7 +914,7 @@ if page == "Tools":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # --- PAGE 4: Trade Bot ---
-if page == "Trade bot":
+if page == "Trade Bot":
     st.title("⚡ Ultimate Trade Bot")
     st.subheader("Professional AI-driven crypto trade analysis with price action confirmation")
 
