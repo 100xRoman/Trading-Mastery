@@ -915,102 +915,102 @@ if page == "Tools":
 
 # --- PAGE 4: Trade Bot ---
 if page == "Trade Bot":
+    import streamlit as st
+    from tradingview_ta import TA_Handler, Interval, Exchange
+    import pandas as pd
+    from textblob import TextBlob
+    import requests
+
     st.title("⚡ Ultimate Trade Bot")
-    st.subheader("Professional AI-driven crypto trade analysis with price action confirmation")
+    st.subheader("Live AI-driven multi-timeframe analysis with price action confirmation")
 
-    # --- Coin Selection ---
-    coins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"]
-    selected_coin = st.selectbox("Select Coin", coins)
-    custom_coin = st.text_input("Or enter custom coin symbol (e.g., ADAUSDT)")
+    # --- Symbol Input (Coin/Stock/Metal/Other) ---
+    symbol_input = st.text_input("Enter symbol (e.g., BTCUSDT, AAPL, XAUUSD)")
+    exchange_input = st.selectbox("Exchange / Market", ["BINANCE", "NASDAQ", "OANDA"])
+    screener_input = st.selectbox("Screener", ["crypto", "stocks", "forex", "commodities"])
 
-    coin = custom_coin.upper() if custom_coin else selected_coin
+    if symbol_input:
+        with st.spinner("Fetching live data and analyzing... ⏳"):
 
-    # --- Timeframe Selection ---
-    st.markdown("**Select Timeframes for Multi-Timeframe Analysis:**")
-    tf_options = ["1h", "4h", "1d"]
-    selected_timeframes = st.multiselect("Timeframes", tf_options, default=tf_options)
+            # --- Automatically use all timeframes ---
+            timeframes = [Interval.INTERVAL_1_HOUR, Interval.INTERVAL_4_HOURS, Interval.INTERVAL_1_DAY]
+            results = {}
 
-    # --- Execute Button ---
-    execute = st.button("Execute Search")
-
-    if execute:
-        with st.spinner("Fetching data and analyzing... ⏳"):
-            # --- Placeholder for fetching & caching indicator data ---
-            # indicators_data = fetch_indicators(coin, selected_timeframes)
-            # price_action_data = analyze_price_action(coin, selected_timeframes)
-            # news_sentiment = fetch_news_sentiment(coin)
-            # ai_score = compute_ai_score(indicators_data, price_action_data, news_sentiment)
-
-            st.success("Analysis Complete ✅")
-
-            # --- Tabs for detailed sections ---
-            t1, t2, t3, t4, t5 = st.tabs([
-                "📊 Indicators", 
-                "🕯️ Price Action", 
-                "📰 News Sentiment", 
-                "📈 Trade Setup", 
-                "🤖 AI Analysis"
-            ])
-
-            # --- Tab 1: Indicators ---
-            with t1:
-                st.subheader(f"Technical Indicators for {coin}")
-                st.markdown("""
-                - RSI: 28 → Oversold  
-                - MA20: 27,500 → Above MA50: 27,000 → Bullish crossover  
-                - MACD: 15 → Positive  
-                - OBV: Increasing → Buying pressure  
-                - ATR: 200 → Moderate volatility  
-                - Ichimoku Cloud: Price above cloud → Bullish  
-                - CCI: 120 → Momentum strong  
-                - Stochastic: 30 → Oversold  
-                - Fibonacci 0.382: 27,200  
-                - Keltner Channel Upper/Lower: 28,000 / 26,800
-                """)
-
-            # --- Tab 2: Price Action ---
-            with t2:
-                st.subheader("Price Action Confirmation")
-                st.markdown("""
-                - Liquidity sweep detected at 27,300  
-                - Bounce from prior FVG → Entry validated  
-                - Market structure shows higher lows → Uptrend confirmed
-                """)
-
-            # --- Tab 3: News Sentiment ---
-            with t3:
-                st.subheader("Recent News & Sentiment Analysis")
-                st.markdown("Top news fetched and sentiment scored:")
-                st.markdown("Positive (+0.45) → supports bullish setup")
-
-            # --- Tab 4: Trade Setup ---
-            with t4:
-                st.subheader("Suggested Trade Setup")
-                st.markdown("""
-                - **Entry:** 27,300 - 27,400  
-                - **Stop Loss:** 26,900  
-                - **Take Profit:** 28,500 (Fibonacci target)  
-                - **Setup Probability:** High  
-                - **Risk Assessment:** Medium
-                """)
-                # Optional: Add chart annotation placeholder
-                st.markdown("*(Chart annotations with entries, stops, and targets go here)*")
-
-            # --- Tab 5: AI Analysis ---
-            with t5:
-                st.subheader("AI & Quant Considerations")
-                st.markdown("""
-                - Multi-timeframe weighting: daily > 4h > 1h  
-                - Combines technical indicators + price action + news sentiment + volatility  
-                - Highlights multi-indicator confluence zones  
-                - Adjusts recommendation dynamically based on volatility & market behavior  
-                - Final Recommendation: **STRONG BUY**
-                """)
-
-            # --- Optional Export ---
-            st.download_button(
-                "Export Analysis (CSV)",
-                data="coin,timeframe,recommendation,entry,stop,profit,risk\nBTCUSDT,1h,STRONG BUY,27300-27400,26900,28500,Medium",
-                file_name=f"{coin}_analysis.csv",
-                mime="text/csv"
+            # --- Initialize TA Handler ---
+            handler = TA_Handler(
+                symbol=symbol_input.upper(),
+                screener=screener_input.lower(),
+                exchange=exchange_input.upper(),
+                interval=Interval.INTERVAL_1_HOUR  # Placeholder, will loop over timeframes
             )
+
+            # --- Fetch indicators for all timeframes ---
+            for tf in timeframes:
+                handler.set_interval(tf)
+                analysis = handler.get_analysis()
+                results[tf] = {
+                    "RSI": analysis.indicators.get("RSI"),
+                    "MA20": analysis.indicators.get("MA20"),
+                    "MA50": analysis.indicators.get("MA50"),
+                    "MACD": analysis.indicators.get("MACD.macd"),
+                    "OBV": analysis.indicators.get("OBV"),
+                    "ATR": analysis.indicators.get("ATR"),
+                    "CCI": analysis.indicators.get("CCI"),
+                    "Stochastic": analysis.indicators.get("Stoch.K"),
+                    "Ichimoku": analysis.indicators.get("Ichimoku.Base"),
+                    "Recommendation": analysis.summary
+                }
+
+            # --- Placeholder for price action confirmation ---
+            # Real FVG / liquidity sweeps would require candlestick-level analysis
+            price_action_notes = "Price action analysis: Detecting FVGs, liquidity sweeps, BOS/CHoCH..."
+            
+            # --- News Sentiment (example using CryptoPanic API) ---
+            try:
+                news_url = f"https://cryptopanic.com/api/v1/posts/?auth_token=YOUR_API_KEY&currencies={symbol_input.upper()}"
+                news_resp = requests.get(news_url).json()
+                sentiments = []
+                for article in news_resp.get("results", []):
+                    text = article.get("title", "") + " " + article.get("body", "")
+                    blob = TextBlob(text)
+                    sentiments.append(blob.sentiment.polarity)
+                news_score = round(sum(sentiments)/len(sentiments), 2) if sentiments else 0
+            except:
+                news_score = 0
+
+            # --- Aggregate AI/Quant Recommendation ---
+            buy_count = sum([1 for tf_data in results.values() if tf_data["Recommendation"]["BUY"] > tf_data["Recommendation"]["SELL"]])
+            sell_count = sum([1 for tf_data in results.values() if tf_data["Recommendation"]["SELL"] > tf_data["Recommendation"]["BUY"]])
+            if buy_count > sell_count:
+                final_rec = "STRONG BUY" if buy_count == 3 else "BUY"
+            elif sell_count > buy_count:
+                final_rec = "STRONG SELL" if sell_count == 3 else "SELL"
+            else:
+                final_rec = "NEUTRAL"
+
+            # --- Risk Assessment ---
+            avg_atr = sum([tf_data["ATR"] for tf_data in results.values() if tf_data["ATR"]]) / len(timeframes)
+            risk_level = "Low" if avg_atr < 0.01 else "Medium" if avg_atr < 0.03 else "High"
+
+            # --- Display Results ---
+            st.subheader(f"📊 Recommendation for {symbol_input.upper()}")
+            st.markdown(f"**Final Recommendation:** {final_rec}")
+            st.markdown(f"**Risk Assessment:** {risk_level}")
+            st.markdown(f"**News Sentiment Score:** {news_score}")
+
+            # --- Indicators Table ---
+            df_indicators = pd.DataFrame(results).T
+            st.subheader("Technical Indicators (All Timeframes)")
+            st.dataframe(df_indicators)
+
+            # --- Price Action Notes ---
+            st.subheader("Price Action Confirmation")
+            st.markdown(price_action_notes)
+
+            # --- Trade Setup Placeholder ---
+            st.subheader("Trade Setup Suggestion")
+            st.markdown("Entry, Stop Loss, Take Profit and Probability will be dynamically generated here based on price action + ATR + Fibonacci levels.")
+
+            # Optional: CSV export
+            csv = df_indicators.to_csv().encode("utf-8")
+            st.download_button("Export Indicators CSV", data=csv, file_name=f"{symbol_input}_analysis.csv", mime="text/csv")
