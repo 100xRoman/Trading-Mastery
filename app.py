@@ -913,9 +913,9 @@ if page == "Tools":
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- PAGE 4: Ultimate God-Mode Trade Bot ---
-if page == "Ultimate God-Mode Trade Bot":
-    st.title("⚡ Ultimate God-Mode Trade Bot")
+# --- PAGE 4: Trade Bot ---
+if page == "Trade bot":
+    st.title("⚡ Ultimate Trade Bot")
     st.subheader("Professional AI-driven crypto trade analysis with price action confirmation")
 
     # --- Coin Selection ---
