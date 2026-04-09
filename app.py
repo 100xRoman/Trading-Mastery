@@ -943,11 +943,6 @@ if st.button("Execute Search"):
         progress.progress(progress_value)
         status_text.text(f"Progress: {int(progress_value*100)}% ({step}/{total_steps})")
 
-def update_progress():
-    progress_value = step / total_steps  # Float between 0.0 and 1.0
-    progress.progress(progress_value)
-    status_text.text(f"Progress: {int(progress_value*100)}% ({step}/{total_steps})")
-
         results = []
 
         # --- Step 1: Fetch Indicators per Timeframe ---
