@@ -922,188 +922,185 @@ page = st.sidebar.selectbox("Select Page", ["Home", "Portfolio", "Trade Bot"])
 
 # --- PAGE 4: TRADE BOT ---
 if page == "Trade Bot":
-    st.title("🤖 Trade Bot Pro")
-    st.info("AI-Powered Multi-Timeframe Market Predictions & Trade Insights")
+    st.title("💎 MEGA Trade Bot — QUANT FUND GOD MODE")
+    st.subheader("Elite Multi-Timeframe, Multi-Indicator, News-Driven Engine")
 
-    # --- Coin Selection Dropdown (Flap) ---
-    asset = st.selectbox("Select Coin", ["BTC", "ETH", "SOL", "XRP", "BNB"])
+    import ccxt
+    import pandas as pd
+    import numpy as np
+    import ta
+    import time
+    import feedparser
+    from datetime import datetime, timedelta
 
-    # --- Timeframe Selection ---
-    intervals = {"1h": Interval.INTERVAL_1_HOUR,
-                 "4h": Interval.INTERVAL_4_HOURS,
-                 "1d": Interval.INTERVAL_1_DAY}
-    selected_intervals = st.multiselect("Select Timeframes", list(intervals.keys()), default=["1h", "4h", "1d"])
+    # --- Coin Selector ---
+    coin_map = {
+        "BTC": "BTC/USDT",
+        "ETH": "ETH/USDT",
+        "SOL": "SOL/USDT",
+        "XRP": "XRP/USDT",
+        "BNB": "BNB/USDT"
+    }
+    coin_choice = st.selectbox("Select Asset", list(coin_map.keys()))
+    symbol = coin_map[coin_choice]
 
-    # --- Execute Search Button ---
-if st.button("Execute Search"):
-    progress_text = st.empty()
-    progress_bar = st.progress(0)
+    # --- Multi-Timeframe Settings ---
+    timeframes = ["1h", "4h", "1d"]
+    interval_labels = {"1h": "1 Hour", "4h": "4 Hours", "1d": "1 Day"}
 
-    total_steps = len(selected_intervals) + 3
-    current_step = [0]
+    # --- Execute Button ---
+    if st.button("🚀 Execute Full Quant Analysis", use_container_width=True):
+        progress = st.progress(0)
+        status = st.empty()
+        step = 0
+        def update():
+            nonlocal step
+            step += 1
+            progress.progress(min(step / 15, 1.0))
 
-    def update_progress():
-        current_step[0] += 1
-        progress_bar.progress(min(current_step[0] / total_steps, 1.0))
+        try:
+            exchange = ccxt.binance()
+            multi_results = {}
 
-    try:  # ✅ SAME INDENT LEVEL as progress_text
-        multi_score = 0
-        summaries = {}
-        ma_summary = {}
-        osc_summary = {}
-        ichimoku_signals = {}
-        kc_signals = {}
-        atr_values = []
-        
-            # --- Multi-Timeframe Analysis ---
-        for tf in selected_intervals:
-            progress_text.text(f"Analyzing {asset} on {tf}...")
+            for tf in timeframes:
+                status.write(f"Fetching OHLCV data for {interval_labels[tf]}...")
+                ohlcv = exchange.fetch_ohlcv(symbol, timeframe=tf, limit=200)
+                df = pd.DataFrame(ohlcv, columns=["time","open","high","low","close","volume"])
+                df["time"] = pd.to_datetime(df["time"], unit="ms")
 
-            handler = TA_Handler(
-                symbol=f"{asset}USDT",
-                screener="crypto",
-                exchange="BINANCE",
-                interval=intervals[tf]
-            )
+                # --- Indicators ---
+                df["EMA20"] = df["close"].ewm(span=20).mean()
+                df["EMA50"] = df["close"].ewm(span=50).mean()
+                df["RSI"] = ta.momentum.RSIIndicator(df["close"], window=14).rsi()
+                df["MACD"] = ta.trend.MACD(df["close"]).macd_diff()
+                df["OBV"] = ta.volume.OnBalanceVolumeIndicator(df["close"], df["volume"]).on_balance_volume()
+                df["CCI"] = ta.trend.CCIIndicator(df["high"], df["low"], df["close"], window=20).cci()
+                df["Stoch"] = ta.momentum.StochasticOscillator(df["high"], df["low"], df["close"], window=14).stoch()
+                df["ATR"] = ta.volatility.AverageTrueRange(df["high"], df["low"], df["close"], window=14).average_true_range()
 
-            analysis = handler.get_analysis()
-                
-try:
-    multi_score = 0
-    summaries = {}
-    ma_summary = {}
-    osc_summary = {}
-    ichimoku_signals = {}
-    kc_signals = {}
-    atr_values = []
+                # Keltner Channels
+                kc = ta.volatility.KeltnerChannel(df["high"], df["low"], df["close"], window=20, window_atr=10)
+                df["KC_upper"] = kc.keltner_channel_hband()
+                df["KC_lower"] = kc.keltner_channel_lband()
 
-    for tf in selected_intervals:
-        analysis = get_analysis(symbol, tf)
+                # Ichimoku Cloud (simplified)
+                high9 = df["high"].rolling(9).max()
+                low9 = df["low"].rolling(9).min()
+                high26 = df["high"].rolling(26).max()
+                low26 = df["low"].rolling(26).min()
+                df["tenkan"] = (high9 + low9)/2
+                df["kijun"] = (high26 + low26)/2
+                df["ichimoku_signal"] = np.where(df["tenkan"] > df["kijun"], 1, -1)
 
-        summaries[tf] = analysis.summary
-        ma_summary[tf] = analysis.moving_averages
-        osc_summary[tf] = analysis.oscillators
+                # Fibonacci levels
+                last_close = df["close"].iloc[-1]
+                fib_high = df["high"].max()
+                fib_low = df["low"].min()
+                fib_levels = {
+                    "0.236": fib_high - 0.236*(fib_high - fib_low),
+                    "0.382": fib_high - 0.382*(fib_high - fib_low),
+                    "0.5": fib_high - 0.5*(fib_high - fib_low),
+                    "0.618": fib_high - 0.618*(fib_high - fib_low),
+                    "0.786": fib_high - 0.786*(fib_high - fib_low),
+                }
 
-        rec_map = {
-            "STRONG_BUY": 3,
-            "BUY": 2,
-            "NEUTRAL": 0,
-            "SELL": -2,
-            "STRONG_SELL": -3
-        }
+                # Liquidity Sweep
+                last = df.iloc[-1]
+                prev = df.iloc[-2]
+                sweep_up = last["high"] > prev["high"] and last["close"] < last["open"]
+                sweep_down = last["low"] < prev["low"] and last["close"] > last["open"]
 
-        multi_score += rec_map.get(
-            analysis.summary.get("RECOMMENDATION", "NEUTRAL"), 0
-        )
+                # Volume spike
+                vol_signal = "NEUTRAL"
+                vol_ma = df["volume"].rolling(20).mean().iloc[-1]
+                if last["volume"] > vol_ma * 1.5:
+                    vol_signal = "BUY" if last["close"] > last["open"] else "SELL"
 
-        # ATR
-        atr = analysis.indicators.get("ATR", 0)
-        atr_values.append(atr)
+                # News Sentiment
+                news_score = 0
+                feed = feedparser.parse("https://cryptopanic.com/rss/")
+                for entry in feed.entries[:10]:
+                    t = entry.title.lower()
+                    if any(x in t for x in ["bull","rally","surge"]):
+                        news_score += 1
+                    elif any(x in t for x in ["crash","hack","ban"]):
+                        news_score -= 1
 
-        # Ichimoku
-        ichimoku_cloud = analysis.indicators.get("IchimokuCloud", None)
-        if ichimoku_cloud:
-            if ichimoku_cloud > analysis.indicators.get("close", 0):
-                ichimoku_signals[tf] = "BUY"
-            else:
-                ichimoku_signals[tf] = "SELL"
+                # --- Scoring ---
+                score = 0
+                score += 3 if last["EMA20"] > last["EMA50"] else -3
+                if last["RSI"] > 70: score -= 2
+                elif last["RSI"] < 30: score += 2
+                score += 1 if last["MACD"] > 0 else -1
+                score += last["ichimoku_signal"] * 2
+                score += 2 if vol_signal=="BUY" else -2 if vol_signal=="SELL" else 0
+                score += 4 if sweep_down else -4 if sweep_up else 0
+                score += news_score
 
-        # Keltner Channels
-        kc_upper = analysis.indicators.get("KCUpper", None)
-        kc_lower = analysis.indicators.get("KCLower", None)
-        price = analysis.indicators.get("close", 0)
+                # Risk
+                atr_pct = last["ATR"]/last["close"]
+                risk = "🔴 HIGH RISK" if atr_pct > 0.02 else "🟢 LOW RISK"
 
-        if kc_upper and kc_lower:
-            if price > kc_upper:
-                kc_signals[tf] = "SELL"
-            elif price < kc_lower:
-                kc_signals[tf] = "BUY"
-            else:
-                kc_signals[tf] = "NEUTRAL"
+                # Signal
+                if score >= 6: signal = "🔥 STRONG BUY"
+                elif score >= 2: signal = "✅ BUY"
+                elif score <= -6: signal = "💀 STRONG SELL"
+                elif score <= -2: signal = "⚠️ SELL"
+                else: signal = "➖ NEUTRAL"
 
-        time.sleep(0.5)  # simulate loading
-        update_progress()
-
-except Exception as e:
-    st.error(f"Error during analysis: {e}")
-
-            # --- Determine Trade Signal ---
-            if multi_score >= 6:
-                trade_signal = "Strong Buy"
-            elif 3 <= multi_score < 6:
-                trade_signal = "Weak Buy"
-            elif -3 < multi_score < 3:
-                trade_signal = "Neutral"
-            elif -6 < multi_score <= -3:
-                trade_signal = "Weak Sell"
-            else:
-                trade_signal = "Strong Sell"
-
-            avg_atr = sum(atr_values)/len(atr_values) if atr_values else 0
-            risk_level = "High Risk" if avg_atr > 0 else "Low Risk"
-
-            update_progress()
-
-            # --- Fibonacci-based Trade Setup ---
-            last_tf = selected_intervals[-1]
-            last_analysis = TA_Handler(
-                symbol=f"{asset}USDT",
-                screener="crypto",
-                exchange="BINANCE",
-                interval=intervals[last_tf]
-            ).get_analysis()
-            high = last_analysis.indicators.get("HIGH", None)
-            low = last_analysis.indicators.get("LOW", None)
-            if high and low:
-                diff = high - low
-                entry = low + diff * 0.382
-                target = low + diff * 0.618
-                stop = low
-                rr_ratio = (target - entry) / (entry - stop)
-            else:
-                entry = target = stop = rr_ratio = None
-
-            update_progress()
-
-            # --- News Section ---
-            st.markdown("### 📰 Relevant News")
-            try:
-                news_api_key = "YOUR_NEWSAPI_KEY"
-                url = f"https://newsapi.org/v2/everything?q={asset}&sortBy=publishedAt&apiKey={news_api_key}"
-                response = requests.get(url).json()
-                articles = response.get("articles", [])[:5]
-                if articles:
-                    for a in articles:
-                        st.markdown(f"- [{a['title']}]({a['url']})")
+                # Entry / SL / TP
+                price = last["close"]
+                if "BUY" in signal:
+                    entry, sl, tp = price, price - last["ATR"]*2, price + last["ATR"]*4
+                elif "SELL" in signal:
+                    entry, sl, tp = price, price + last["ATR"]*2, price - last["ATR"]*4
                 else:
-                    st.info("No recent news found.")
-            except:
-                st.info("News API not configured, using placeholders.")
-                st.markdown(f"- {asset} market movements impacting trades. [Read more](https://example.com)")
+                    entry = sl = tp = 0
 
-            update_progress()
-            progress_text.text("Analysis Complete ✅")
-            progress_bar.progress(1.0)
+                confidence = min(int(abs(score)*10),100)
 
-            # --- Display Trade Results ---
-            st.markdown(f"### 📊 Trade Signal: **{trade_signal}**")
-            st.markdown(f"### ⚠️ Risk Level: **{risk_level}**")
-            if entry:
-                st.markdown("### 📝 Suggested Trade Setup")
-                st.markdown(f"- Entry: {entry:.2f}")
-                st.markdown(f"- Stop-Loss: {stop:.2f}")
-                st.markdown(f"- Take-Profit: {target:.2f}")
-                st.markdown(f"- Risk/Reward Ratio: {rr_ratio:.2f}")
+                # Store results per timeframe
+                multi_results[tf] = {
+                    "signal": signal,
+                    "risk": risk,
+                    "confidence": confidence,
+                    "entry": entry,
+                    "sl": sl,
+                    "tp": tp,
+                    "fib": fib_levels,
+                    "vol_signal": vol_signal,
+                    "sweep": "Bullish" if sweep_down else "Bearish" if sweep_up else "None",
+                    "score": score,
+                    "last_close": last_close
+                }
 
-            # --- Multi-Timeframe Indicator Summaries ---
-            st.markdown("### ⏱ Multi-Timeframe Indicator Summaries")
-            for tf in selected_intervals:
-                st.markdown(f"#### {tf} Summary")
-                st.write(summaries[tf])
-                st.write("MA:", ma_summary[tf])
-                st.write("Oscillators:", osc_summary[tf])
-                st.write("Ichimoku Signal:", ichimoku_signals.get(tf, "N/A"))
-                st.write("Keltner Signal:", kc_signals.get(tf, "N/A"))
+                update()
+                time.sleep(0.5)
+
+            # =========================
+            # DISPLAY
+            # =========================
+            for tf, res in multi_results.items():
+                st.divider()
+                st.subheader(f"⏱ {interval_labels[tf]} Analysis")
+                c1,c2,c3 = st.columns(3)
+                c1.metric("Signal", res["signal"])
+                c2.metric("Risk", res["risk"])
+                c3.metric("Confidence", f"{res['confidence']}%")
+
+                st.write("### 🎯 Levels")
+                st.write(f"Entry: {res['entry']:.2f}, Stop Loss: {res['sl']:.2f}, Take Profit: {res['tp']:.2f}")
+
+                st.write("### 🔹 Fibonacci Levels")
+                for k,v in res["fib"].items():
+                    st.write(f"{k}: {v:.2f}")
+
+                st.write("### 🧠 Breakdown")
+                st.write(f"Liquidity Sweep: {res['sweep']}")
+                st.write(f"Volume Signal: {res['vol_signal']}")
+                st.write(f"Score: {res['score']}")
+
+            st.success("💎 MEGA QUANT FUND ANALYSIS COMPLETE 🚀")
 
         except Exception as e:
-            st.error(f"Failed to generate trade signal: {e}")
+            st.error(f"Error: {e}")
