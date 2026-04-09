@@ -800,14 +800,16 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
-    # 1. TRADING JOURNAL
-    with t_journal:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
-    
+# 1. TRADING JOURNAL
+with t_journal:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
+
+    # Initialize session state inside the tab
     if 'history' not in st.session_state: 
         st.session_state.history = []
-        
+
+    # Trade log form
     with st.form("log_trade"):
         c1, c2, c3 = st.columns(3)
         t_type = c1.selectbox("Type", ["LONG", "SHORT"])
@@ -815,14 +817,27 @@ if page == "Tools":
         t_lev = c2.number_input("Leverage", min_value=1, value=10)
         p_mode = c2.radio("Input", ["%", "$"])
         t_val = c3.number_input("P&L Value", value=0.0)
+
         if st.form_submit_button("Log Position"):
-                usd = t_val if p_mode == "$" else (t_val/100)*t_cap
-                pct = t_val if p_mode == "%" else (t_val/t_cap)*100
-                st.session_state.history.append({"Type": t_type, "Capital": t_cap, "P&L $": usd, "P&L %": pct})
+            usd = t_val if p_mode == "$" else (t_val/100)*t_cap
+            pct = t_val if p_mode == "%" else (t_val/t_cap)*100
+            st.session_state.history.append({
+                "Type": t_type, 
+                "Capital": t_cap, 
+                "P&L $": usd, 
+                "P&L %": pct
+            })
+
+        # Display table
         if st.session_state.history:
             st.table(pd.DataFrame(st.session_state.history))
-            if st.button("Clear Journal"): st.session_state.history = []; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+
+        # Clear button
+        if st.button("Clear Journal"):
+            st.session_state.history = []
+            st.experimental_rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # 2. COMPOUND CALCULATOR
     with t_compound:
