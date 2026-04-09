@@ -968,33 +968,64 @@ if st.button("Execute Search"):
 
             analysis = handler.get_analysis()
                 
-                summaries[tf] = analysis.summary
-                ma_summary[tf] = analysis.moving_averages
-                osc_summary[tf] = analysis.oscillators
+try:
+    multi_score = 0
+    summaries = {}
+    ma_summary = {}
+    osc_summary = {}
+    ichimoku_signals = {}
+    kc_signals = {}
+    atr_values = []
 
-                rec_map = {"STRONG_BUY": 3, "BUY": 2, "NEUTRAL": 0, "SELL": -2, "STRONG_SELL": -3}
-                multi_score += rec_map.get(analysis.summary.get("RECOMMENDATION", "NEUTRAL"), 0)
+    for tf in selected_intervals:
+        analysis = get_analysis(symbol, tf)
 
-                atr = analysis.indicators.get("ATR", 0)
-                atr_values.append(atr)
+        summaries[tf] = analysis.summary
+        ma_summary[tf] = analysis.moving_averages
+        osc_summary[tf] = analysis.oscillators
 
-                ichimoku_cloud = analysis.indicators.get("IchimokuCloud", None)
-                if ichimoku_cloud:
-                    ichimoku_signals[tf] = "BUY" if ichimoku_cloud > analysis.indicators.get("close", 0) else "SELL"
+        rec_map = {
+            "STRONG_BUY": 3,
+            "BUY": 2,
+            "NEUTRAL": 0,
+            "SELL": -2,
+            "STRONG_SELL": -3
+        }
 
-                kc_upper = analysis.indicators.get("KCUpper", None)
-                kc_lower = analysis.indicators.get("KCLower", None)
-                price = analysis.indicators.get("close", 0)
-                if kc_upper and kc_lower:
-                    if price > kc_upper:
-                        kc_signals[tf] = "SELL"
-                    elif price < kc_lower:
-                        kc_signals[tf] = "BUY"
-                    else:
-                        kc_signals[tf] = "NEUTRAL"
-                
-                time.sleep(0.5)  # Simulate load time
-                update_progress()
+        multi_score += rec_map.get(
+            analysis.summary.get("RECOMMENDATION", "NEUTRAL"), 0
+        )
+
+        # ATR
+        atr = analysis.indicators.get("ATR", 0)
+        atr_values.append(atr)
+
+        # Ichimoku
+        ichimoku_cloud = analysis.indicators.get("IchimokuCloud", None)
+        if ichimoku_cloud:
+            if ichimoku_cloud > analysis.indicators.get("close", 0):
+                ichimoku_signals[tf] = "BUY"
+            else:
+                ichimoku_signals[tf] = "SELL"
+
+        # Keltner Channels
+        kc_upper = analysis.indicators.get("KCUpper", None)
+        kc_lower = analysis.indicators.get("KCLower", None)
+        price = analysis.indicators.get("close", 0)
+
+        if kc_upper and kc_lower:
+            if price > kc_upper:
+                kc_signals[tf] = "SELL"
+            elif price < kc_lower:
+                kc_signals[tf] = "BUY"
+            else:
+                kc_signals[tf] = "NEUTRAL"
+
+        time.sleep(0.5)  # simulate loading
+        update_progress()
+
+except Exception as e:
+    st.error(f"Error during analysis: {e}")
 
             # --- Determine Trade Signal ---
             if multi_score >= 6:
