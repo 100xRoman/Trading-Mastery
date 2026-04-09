@@ -929,11 +929,19 @@ if page == "Trade Bot":
     coin_symbol = st.selectbox("Select Coin", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"])
     intervals = ["1h", "4h", "1d"]
 
-    if st.button("Execute Search"):
-        progress = st.progress(0)
-        status_text = st.empty()
-        total_steps = len(intervals) + 4
-        step = 0
+if st.button("Execute Search"):
+    progress = st.progress(0)
+    status_text = st.empty()
+    total_steps = 10
+    step = 0
+
+    results = []
+    intervals = ["1h", "4h", "1d"]  # Example timeframes
+
+    def update_progress():
+        progress_value = step / total_steps
+        progress.progress(progress_value)
+        status_text.text(f"Progress: {int(progress_value*100)}% ({step}/{total_steps})")
 
 def update_progress():
     progress_value = step / total_steps  # Float between 0.0 and 1.0
