@@ -790,6 +790,7 @@ def monte_carlo(trades, runs=100):
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
     
+    # Create tabs
     t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
         "📊 Journal",
         "📈 Compound",
@@ -800,46 +801,50 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
+    # -----------------------------
     # 1. TRADING JOURNAL
+    # -----------------------------
     with t_journal:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
 
-    # Initialize session state
-    if 'history' not in st.session_state: 
-        st.session_state.history = []
+        # Initialize session state
+        if 'history' not in st.session_state:
+            st.session_state.history = []
 
-    # Trade log form
-    with st.form("log_trade"):
-        c1, c2, c3 = st.columns(3)
-        t_type = c1.selectbox("Type", ["LONG", "SHORT"])
-        t_cap = c1.number_input("Capital ($)", min_value=0.0, value=100.0)
-        t_lev = c2.number_input("Leverage", min_value=1, value=10)
-        p_mode = c2.radio("Input", ["%", "$"])
-        t_val = c3.number_input("P&L Value", value=0.0)
+        # Trade log form
+        with st.form("log_trade"):
+            c1, c2, c3 = st.columns(3)
+            t_type = c1.selectbox("Type", ["LONG", "SHORT"])
+            t_cap = c1.number_input("Capital ($)", min_value=0.0, value=100.0)
+            t_lev = c2.number_input("Leverage", min_value=1, value=10)
+            p_mode = c2.radio("Input", ["%", "$"])
+            t_val = c3.number_input("P&L Value", value=0.0)
 
-        if st.form_submit_button("Log Position"):
-            usd = t_val if p_mode == "$" else (t_val/100)*t_cap
-            pct = t_val if p_mode == "%" else (t_val/t_cap)*100
-            st.session_state.history.append({
-                "Type": t_type, 
-                "Capital": t_cap, 
-                "P&L $": usd, 
-                "P&L %": pct
-            })
+            if st.form_submit_button("Log Position"):
+                usd = t_val if p_mode == "$" else (t_val/100)*t_cap
+                pct = t_val if p_mode == "%" else (t_val/t_cap)*100
+                st.session_state.history.append({
+                    "Type": t_type,
+                    "Capital": t_cap,
+                    "P&L $": usd,
+                    "P&L %": pct
+                })
 
-    # Display table
-    if st.session_state.history:
-        st.table(pd.DataFrame(st.session_state.history))
+        # Display trade history table
+        if st.session_state.history:
+            st.table(pd.DataFrame(st.session_state.history))
 
-    # Clear button OUTSIDE the form
-    if st.button("Clear Journal"):
-        st.session_state.history = []
-        st.experimental_rerun()
+        # Clear button (outside the form)
+        if st.button("Clear Journal"):
+            st.session_state.history = []
+            st.experimental_rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 2. COMPOUND CALCULATOR
+    # -----------------------------
     with t_compound:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
@@ -848,7 +853,9 @@ if page == "Tools":
         st.metric("Final Balance", f"${s_bal * (2**n_doubles):,.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 3. DCA CALCULATOR
+    # -----------------------------
     with t_dca:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🎯 DCA Average Entry</p>', unsafe_allow_html=True)
@@ -862,7 +869,9 @@ if page == "Tools":
             st.metric("Weighted Average", f"${avg:,.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 4. BREAKEVEN CALCULATOR
+    # -----------------------------
     with t_be:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚖️ Breakeven Finder</p>', unsafe_allow_html=True)
@@ -871,7 +880,9 @@ if page == "Tools":
         st.metric("Exit Price for $0 Loss", f"${be_p * (1 + (be_f/100)*2):,.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 5. POSITION SIZE %
+    # -----------------------------
     with t_pos:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">📏 Margin Converter</p>', unsafe_allow_html=True)
@@ -881,7 +892,9 @@ if page == "Tools":
         st.metric("Bybit Margin Required", f"${(w_bal * (r_pct/100)) / l_used:,.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 6. LEVERAGE STRESS TEST
+    # -----------------------------
     with t_stress:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚠️ Leverage Stress Test</p>', unsafe_allow_html=True)
@@ -891,10 +904,11 @@ if page == "Tools":
         st.warning(f"A 1% move results in a {1 * st_l}% P&L change.")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # -----------------------------
     # 7. MARKET SENTIMENT
+    # -----------------------------
     with t_sentiment:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.image("https://alternative.me/crypto/fear-and-greed-index.png", caption="Fear & Greed Index")
+        
         st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
