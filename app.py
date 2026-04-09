@@ -956,15 +956,17 @@ if st.button("Execute Search"):
         atr_values = []
         
             # --- Multi-Timeframe Analysis ---
-            for tf in selected_intervals:
-                progress_text.text(f"Analyzing {asset} on {tf} timeframe...")
-                handler = TA_Handler(
-                    symbol=f"{asset}USDT",
-                    screener="crypto",
-                    exchange="BINANCE",
-                    interval=intervals[tf]
-                )
-                analysis = handler.get_analysis()
+        for tf in selected_intervals:
+            progress_text.text(f"Analyzing {asset} on {tf}...")
+
+            handler = TA_Handler(
+                symbol=f"{asset}USDT",
+                screener="crypto",
+                exchange="BINANCE",
+                interval=intervals[tf]
+            )
+
+            analysis = handler.get_analysis()
                 
                 summaries[tf] = analysis.summary
                 ma_summary[tf] = analysis.moving_averages
