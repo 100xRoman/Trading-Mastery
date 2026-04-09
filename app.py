@@ -913,33 +913,33 @@ if page == "Tools":
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- PAGE 4: Trade Bot ---
-if page == "Trade Bot":
+# --- PAGE 4: Ultimate God-Mode Trade Bot ---
+if page == "Ultimate God-Mode Trade Bot":
     import streamlit as st
-    from tradingview_ta import TA_Handler, Interval, TA_HandlerException
     import pandas as pd
+    from tradingview_ta import TA_Handler, Interval, TA_HandlerException
     from textblob import TextBlob
     import requests
 
-    st.title("⚡ Ultimate Trade Bot")
-    st.subheader("Live AI-driven multi-timeframe analysis with price action confirmation")
+    st.title("⚡ Ultimate God-Mode Trade Bot")
+    st.subheader("Live multi-timeframe analysis with AI & price action confirmation")
 
-    # --- Symbol Input (any TradingView pair) ---
+    # --- Input: TradingView symbol ---
     symbol_input = st.text_input("Enter TradingView symbol (e.g., BTCUSDT, AAPL, XAUUSD)")
 
     if symbol_input:
-        with st.spinner("Fetching live data and analyzing... ⏳"):
+        with st.spinner("Fetching data from TradingView and analyzing... ⏳"):
             timeframes = [Interval.INTERVAL_1_HOUR, Interval.INTERVAL_4_HOURS, Interval.INTERVAL_1_DAY]
             results = {}
             symbol_found = True
 
-            # --- Fetch indicators for all timeframes ---
+            # --- Fetch technical indicators for each timeframe ---
             for tf in timeframes:
                 try:
                     handler = TA_Handler(
                         symbol=symbol_input.upper(),
-                        screener="crypto",  # Using default screener, can try 'forex' or 'stocks' if needed
-                        exchange="BINANCE",  # Default exchange
+                        screener="crypto",  # default to crypto, works for most symbols; tradingview-ta requires a screener
+                        exchange="BINANCE",  # default exchange; required by tradingview-ta
                         interval=tf
                     )
                     analysis = handler.get_analysis()
@@ -963,9 +963,15 @@ if page == "Trade Bot":
                 st.error("⚠️ Symbol not found on TradingView. Please try a different one.")
             else:
                 # --- Price Action Placeholder ---
-                price_action_notes = "Price action analysis: Detecting FVGs, liquidity sweeps, BOS/CHoCH..."
+                price_action_notes = (
+                    "Price Action Analysis:\n"
+                    "- Detecting Fair Value Gaps (FVGs)\n"
+                    "- Checking liquidity sweeps\n"
+                    "- Market structure shifts (BOS/CHoCH)\n"
+                    "- Candlestick patterns, wicks, and momentum"
+                )
 
-                # --- News Sentiment (example using CryptoPanic API) ---
+                # --- News Sentiment Placeholder ---
                 try:
                     news_url = f"https://cryptopanic.com/api/v1/posts/?auth_token=YOUR_API_KEY&currencies={symbol_input.upper()}"
                     news_resp = requests.get(news_url).json()
@@ -978,7 +984,7 @@ if page == "Trade Bot":
                 except:
                     news_score = 0
 
-                # --- Aggregate AI/Quant Recommendation ---
+                # --- AI / Quant Recommendation ---
                 buy_count = sum([1 for tf_data in results.values() if tf_data["Recommendation"]["BUY"] > tf_data["Recommendation"]["SELL"]])
                 sell_count = sum([1 for tf_data in results.values() if tf_data["Recommendation"]["SELL"] > tf_data["Recommendation"]["BUY"]])
                 if buy_count > sell_count:
@@ -988,9 +994,15 @@ if page == "Trade Bot":
                 else:
                     final_rec = "NEUTRAL"
 
-                # --- Risk Assessment ---
-                avg_atr = sum([tf_data["ATR"] for tf_data in results.values() if tf_data["ATR"]]) / len(timeframes)
-                risk_level = "Low" if avg_atr < 0.01 else "Medium" if avg_atr < 0.03 else "High"
+                # --- Risk Assessment based on ATR ---
+                atr_values = [tf_data["ATR"] for tf_data in results.values() if tf_data["ATR"] is not None]
+                avg_atr = sum(atr_values)/len(atr_values) if atr_values else 0
+                if avg_atr < 0.01:
+                    risk_level = "Low"
+                elif avg_atr < 0.03:
+                    risk_level = "Medium"
+                else:
+                    risk_level = "High"
 
                 # --- Display Results ---
                 st.subheader(f"📊 Recommendation for {symbol_input.upper()}")
@@ -998,7 +1010,7 @@ if page == "Trade Bot":
                 st.markdown(f"**Risk Assessment:** {risk_level}")
                 st.markdown(f"**News Sentiment Score:** {news_score}")
 
-                # --- Indicators Table ---
+                # --- Technical Indicators Table ---
                 df_indicators = pd.DataFrame(results).T
                 st.subheader("Technical Indicators (All Timeframes)")
                 st.dataframe(df_indicators)
@@ -1009,8 +1021,16 @@ if page == "Trade Bot":
 
                 # --- Trade Setup Placeholder ---
                 st.subheader("Trade Setup Suggestion")
-                st.markdown("Entry, Stop Loss, Take Profit and Probability will be dynamically generated here based on price action + ATR + Fibonacci levels.")
+                st.markdown(
+                    "Entry, Stop Loss, Take Profit, and Probability will be dynamically generated based "
+                    "on Price Action + ATR + Fibonacci levels"
+                )
 
-                # Optional: CSV export
+                # --- CSV Export ---
                 csv = df_indicators.to_csv().encode("utf-8")
-                st.download_button("Export Indicators CSV", data=csv, file_name=f"{symbol_input}_analysis.csv", mime="text/csv")
+                st.download_button(
+                    "Export Indicators CSV",
+                    data=csv,
+                    file_name=f"{symbol_input}_analysis.csv",
+                    mime="text/csv"
+                )
