@@ -941,12 +941,11 @@ if page == "Trade Bot":
         
         # --- Simulate progress dynamically as data loads ---
         total_steps = len(selected_intervals) + 3  # +3 for news, Fibonacci, final calculations
-        current_step = 0
+current_step = [0]  # use list instead
 
-        def update_progress():
-            nonlocal current_step
-            current_step += 1
-            progress_bar.progress(min(current_step / total_steps, 1.0))
+def update_progress():
+    current_step[0] += 1
+    progress_bar.progress(min(current_step[0] / total_steps, 1.0))
         
         try:
             multi_score = 0
