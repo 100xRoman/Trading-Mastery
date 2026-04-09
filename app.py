@@ -205,77 +205,228 @@ if page == "Mastery (Learning)":
 
 with t1:
     st.subheader("Liquidity & Whale Behavior")
+
     st.write("""
-    Liquidity is one of the most important forces in any market. Large participants such as banks and hedge funds cannot simply execute massive buy or sell orders without affecting price. To enter a $500M position, they need enough opposing orders in the market to fill it efficiently.
+Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
+Without liquidity, markets freeze, spreads widen, and execution becomes unpredictable.
 
-    **How Liquidity Works:**
-    In every market, clusters of orders tend to build up in predictable areas—especially around obvious highs and lows. Retail traders commonly place stop losses above resistance (highs) and below support (lows). These areas form what is known as liquidity pools.
+### Why Liquidity Matters to Institutions
+Large players such as banks, hedge funds, and whales cannot simply execute massive orders without harvesting enough opposing liquidity. 
+To execute multi-million dollar trades without slippage, they look for layers of resting orders in the market — often around swing highs, swing lows, psychological round numbers, and retail stop clusters.
 
-    When price moves into these zones, those stop losses are triggered, creating a surge of market orders. This influx of liquidity allows larger players to enter or exit positions with minimal slippage. :contentReference[oaicite:0]{index=0}
+### How Liquidity Actually Works
+Liquidity clusters where traders place orders:
 
-    **What This Looks Like on a Chart:**
-    Price will often break above a high or below a low, triggering stops and creating what appears to be a breakout. However, this move can quickly reverse once liquidity has been collected. This is commonly referred to as a liquidity sweep or Swing Failure Pattern (SFP).
+- **Retail Stop Orders:** Many retail traders place stop losses above resistance (for shorts) and below support (for longs), creating liquidity pools — high-value targets for larger players.
+- **Institutional Entry / Exit:** Big players often push price into liquidity pools, trigger stops, absorb the order flow, and then reverse direction. This is often misread as a breakout but is actually liquidity collection.
 
-    **How to Trade It:**
-    Instead of entering directly at support or resistance, wait for price to move beyond the level and then reclaim it. The key idea is to avoid being part of the liquidity and instead trade after it has been taken.
+### Liquidity Sweeps (Liquidity Hunts)
+A liquidity sweep occurs when price:
+1. Pushes beyond a previous high/low to collect stops
+2. Quickly reverses after liquidity is taken
 
-    The highest probability setups usually include:
-    - A clear sweep of a key level (high/low)
-    - Strong rejection (wicks or fast reversal)
-    - Quick reclaim back above or below the level
+Indicators of a liquidity sweep on the chart:
+- Break beyond a structural high/low
+- Quick rejection (wick + absorption)
+- Volume spikes as stops are collected
+- Sharp reversal into the previous structure
 
-    In simple terms: don’t trade the level — trade the reaction after liquidity is taken.
-    """)
+### How to Trade Liquidity
+Instead of entering at obvious levels and risking stops:
+- Wait for a liquidity sweep beyond a key level
+- Look for quick rejection and reclaim
+- Enter after liquidity is taken, trading the reaction
+
+Key principle: **Don’t trade the liquidity target — trade the reaction.**
+
+### Institutional Liquidity Setups
+
+| Setup | What It Implies |
+|-------|----------------|
+| Break above old high with fast rejection | Liquidity sweep + smart money entry |
+| Break below old low and reclaim | Bullish liquidity sweep |
+| Pullback into prior imbalance after sweep | High-quality entry with institutional interest |
+
+### Key Takeaways
+- Liquidity drives price, not indicators  
+- Institutions hunt clustered liquidity before big moves  
+- Retail stops = targets for smart money  
+- True edges occur after liquidity is captured  
+- Wait for reaction, not touch
+""")
 
     st.video("https://www.youtube.com/watch?v=0UTvF4SWdQM")
+    st.video("https://www.youtube.com/watch?v=3e0u4vcnDcM")
+    st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
+    st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
+    st.video("https://www.youtube.com/watch?v=vVjV9VIsP0o")
     
-    with t2:
-        st.subheader("🕯️ Pillar 2: Price Action & Fair Value Gaps (FVG)")
-        st.write("""
-        Price Action is the study of raw movement without the lag of indicators. The most critical concept in modern institutional price action is the **Fair Value Gap (FVG)** or Imbalance. An FVG occurs when a single candle moves so aggressively that it leaves a "hole" in the price delivery—meaning only one side of the market (either buyers or sellers) was able to participate.
-        
-        **The Protocol:** The market is an efficient machine that hates imbalances. These gaps act like a vacuum or a magnet, eventually pulling the price back to "rebalance" the zone. When price returns to an FVG, it often finds a massive reaction because that is where the original institutional order flow started.
-        
-        **How to Trade It:** Identify a 3-candle sequence where the wick of the 1st candle and the wick of the 3rd candle do not touch. The space in between is the FVG. Wait for the price to retrace into this gap; this is your high-probability entry for a continuation move.
-        """)
-        
-        st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
+with t2:
+    st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
 
-    with t3:
-        st.subheader("🌊 Pillar 3: Advanced Volume & Effort vs. Result")
-        st.write("""
-        Volume is the only leading indicator that confirms the validity of a move. It represents the "Effort" being put into a price change. Using the Wyckoff theory of **Effort vs. Result**, we can determine if a move is genuine or a trap. 
-        
-        **The Protocol:** If you see a massive green candle (Result) but the Volume is very low (Effort), it means the move is hollow and likely a trap. Conversely, if you see huge Volume but the price isn't moving (High Effort, No Result), it means a Whale is "Absorbing" all the orders, and a massive reversal is about to occur.
-        
-        **How to Trade It:** Look for "Volume Climaxes"—massive spikes in volume after a long trend. This usually marks the end of a move as the last retail traders FOMO in while the Whales are exiting. Always ensure that a breakout is accompanied by a significant increase in volume to confirm institutional participation.
-        """)
-        
-        st.video("https://www.youtube.com/watch?v=vVjV9VIsP0o")
+    st.write("""
+Price action is the purest reflection of supply and demand in the market, and Fair Value Gaps (FVGs) are one of the most powerful tools to identify imbalances and institutional activity.
 
-    with t4:
-        st.subheader("📈 Pillar 4: Technical Market Structure (MSB)")
-        st.write("""
-        Market Structure is the skeleton of the chart. The market only moves in three phases: Uptrend, Downtrend, or Consolidation. The most important event in structure is the **Market Structure Break (MSB)** or Change of Character (CHoCH).
-        
-        **The Protocol:** An uptrend is defined by Higher Highs and Higher Lows. The trend is technically "invincible" until the most recent Higher Low is broken. When that low is breached, it signals that the institutions have flipped their bias from long to short. 
-        
-        **How to Trade It:** Identify the "Strong Low" (the low that created the highest high). If price closes below that low, do not buy the dip. Instead, wait for a return to the "Order Block" that caused the break and enter a Short position. Structure is your map; never trade against the direction of the macro structure.
-        """)
-        
-        st.video("https://www.youtube.com/watch?v=nyHYt6G6ncM")
+### What is a Fair Value Gap?
+A Fair Value Gap occurs when price moves so quickly that there is a space between candlesticks where no trading occurred. Essentially, it represents an imbalance in supply and demand.
 
-    with t5:
-        st.subheader("🌎 Pillar 5: Macro Fundamentals & DXY Correlation")
-        st.write("""
-        Fundamental Analysis in crypto and stocks is driven by global liquidity and interest rates. The most important chart for a trader to watch alongside their assets is the **DXY (US Dollar Index)**. Because almost all assets are paired against the Dollar (BTC/USD, AAPL/USD), the Dollar is the "denominator" of your trade.
-        
-        **The Protocol:** There is an "Inverse Correlation" between the Dollar and Risk Assets. When the DXY is rising, Bitcoin and Stocks usually fall. When the DXY is crashing, assets moon. Furthermore, you must track the "Economic Calendar" for high-impact events like the CPI (Inflation) and FOMC (Interest Rates).
-        
-        **How to Trade It:** Before taking a trade on ONDO, SOL, or NVDA, check the DXY. If the DXY is hitting a major resistance level and looking to reverse downward, it provides a "Macro Tailwinds" that will push your long trade higher. Never trade "Blind" during an FOMC meeting; the volatility can wipe out even the best technical setup.
-        """)
-        
-        st.video("https://www.youtube.com/watch?v=eyuLdAqkeX0")
+- **Bullish FVG:** Appears after a strong upward move where the gap between two candles leaves a void below. Price often returns to fill this gap before continuing higher.
+- **Bearish FVG:** Appears after a strong downward move where the gap between two candles leaves a void above. Price often returns to fill this gap before continuing lower.
+
+FVGs are essentially footprints of institutional order flow — they indicate areas where smart money left orders unfilled.
+
+### How to Spot FVGs on a Chart
+1. Identify a strong impulse candle (long body) followed by another candle that does not overlap.
+2. Mark the high and low of the first candle.
+3. The area between these two candles is your Fair Value Gap.
+4. Watch how price reacts when it returns to this area — these are high-probability trade zones.
+
+### Price Action Principles Around FVGs
+- **Imbalance Reclaim:** When price comes back to fill a gap, it usually retests with reduced momentum. This retest is an opportunity to trade with institutional flow.
+- **Confirmation:** Look for rejection wicks, candlestick patterns, or confluence with previous support/resistance.
+- **Trend Alignment:** FVG trades are stronger when aligned with the higher timeframe trend.
+
+### How to Trade Fair Value Gaps
+1. **Identify the gap:** Spot strong moves leaving an imbalance.
+2. **Wait for price to approach:** Don’t enter on the first impulse; wait for a retracement.
+3. **Look for reaction:** Candlestick rejection, confluence with key levels, or liquidity pools nearby.
+4. **Enter with tight stop:** Place your stop just beyond the gap or beyond the next liquidity level.
+5. **Target continuation:** Price often moves back in the original direction after filling the FVG.
+
+### Example Scenarios
+| Scenario | FVG Setup | Trade Idea |
+|----------|-----------|-----------|
+| Uptrend | Bullish FVG created | Wait for retracement to FVG, enter long after rejection |
+| Downtrend | Bearish FVG created | Wait for retracement to FVG, enter short after rejection |
+| Range Breakout | Gap forms after breakout | Use FVG as a pullback entry for continuation |
+
+### Key Takeaways
+- FVGs are footprints of institutional activity and liquidity imbalances.  
+- Always trade the reaction to the gap, not the initial impulse.  
+- Combine FVG analysis with trend direction and other liquidity concepts for the highest probability setups.  
+- Fair Value Gaps exist across all timeframes — higher timeframes often provide more reliable signals.  
+""")
+
+    st.video("https://www.youtube.com/watch?v=3x4FQqf7X0E")
+    st.video("https://www.youtube.com/watch?v=jLxGqGZhzq4")
+    st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
+
+with t3:
+    st.subheader("🌊 Advanced Volume & Effort vs. Result")
+
+    st.write("""
+Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn’t enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
+
+### Effort vs. Result (Wyckoff Principle)
+- **Effort:** Measured by the size of the volume bars.
+- **Result:** Measured by the actual price movement that volume produces.
+- The key idea: **large effort with little result indicates absorption**, while **small effort with large result indicates momentum**.
+
+### How to Interpret Volume
+1. **High Volume + Big Move:** Confirms trend continuation.
+2. **High Volume + Small Move:** Shows absorption — smart money is buying/selling without letting price run.
+3. **Low Volume + Big Move:** Low participation — likely weak and unsustainable.
+4. **Low Volume + Small Move:** Market is consolidating; waiting for liquidity.
+
+### Liquidity Insights with Volume
+- Watch where volume spikes occur — usually near **support/resistance, FVGs, or liquidity pools**.  
+- Institutional players create **fake breakouts** to capture liquidity — volume gives clues if they’re absorbing or pushing.
+
+### Practical Trading Ideas
+- **Accumulation Phase:** High effort with little price drop → potential long setup.
+- **Distribution Phase:** High effort with little price rise → potential short setup.
+- **Breakouts:** Validate with volume. A real breakout usually shows **effort aligned with result**.
+- **Liquidity Sweeps:** Price moves rapidly to trigger stops; look for corresponding volume spikes for confirmation.
+
+### Volume + Price Action Confluence
+- Combine with **FVGs, support/resistance, and liquidity pools**.  
+- Example: Price returns to a bullish FVG with a **volume spike showing absorption** → high-probability long trade.
+
+### Key Takeaways
+- Never trade volume alone — always analyze **effort vs. result**.  
+- Institutional activity is often revealed through **disproportionate effort**.  
+- Look for areas where volume confirms or contradicts price movement to find high-probability setups.  
+- Using volume with **liquidity concepts and FVGs** gives a complete picture of the market’s hidden order flow.
+""")
+
+    st.video("https://www.youtube.com/watch?v=4C9F9R3QK2E")
+    st.video("https://www.youtube.com/watch?v=L9zKkeo3BjQ")
+    st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
+
+with t4:
+    st.subheader("📈 Technical Market Structure (MSB)")
+
+    st.write("""
+Understanding **market structure** is essential for trading like smart money. Market structure tells you **where price is likely headed**, and where liquidity might be targeted.
+
+### Basics of Market Structure
+- **Higher Highs / Higher Lows (HH/HL):** Bullish trend
+- **Lower Highs / Lower Lows (LH/LL):** Bearish trend
+- **Break of Structure (BOS):** When price breaks a previous high or low, indicating a potential trend change
+- **Change of Character (CHoCH):** A shift in trend momentum; often confirms liquidity sweep or smart money activity
+
+### Liquidity & Market Structure
+- Smart money targets **clusters of liquidity**, often just beyond obvious highs or lows.
+- BOS or CHoCH moves are often **fakeouts designed to capture liquidity** before reversing.
+- Watch for **stop hunts**: price triggers retail stop losses at obvious levels, then reverses in line with institutional positioning.
+
+### Combining MSB with Price Action & Liquidity
+1. Identify **key swing highs and lows** to map market structure.
+2. Look for **FVGs** or gaps near these swings for potential entries.
+3. Monitor **volume** to confirm institutional activity — effort vs. result gives clues if a move is real or a liquidity sweep.
+4. Confirm trend continuation or reversal by analyzing if **price respects or breaks structure** with confluence from liquidity zones.
+
+### Practical Tips
+- Don’t just trade breakouts — wait for **retests after BOS/CHoCH**.
+- Align entries with **high-probability setups**: liquidity pool sweeps, reclaimed levels, and supporting volume.
+- Use MSB to **filter trades**: avoid trading against dominant structure unless there’s strong liquidity/volume evidence.
+
+### Key Takeaways
+- Market structure identifies **trend direction and hidden liquidity targets**.
+- BOS and CHoCH are your signals to watch for **institutional involvement**.
+- Always combine **MSB + FVG + Liquidity + Volume** for the most reliable setups.
+- Trading in alignment with market structure reduces risk and increases probability of success.
+""")
+
+    st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
+    st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
+
+with t5:
+    st.subheader("🌎 Macro Fundamentals & DXY Correlation")
+
+    st.write("""
+Understanding **macro fundamentals** is crucial for anticipating market moves and aligning with smart money flows. Large institutions pay attention to global economic conditions, interest rates, and currency strength, especially the **US Dollar Index (DXY)**.
+
+### Why Macro Matters
+- Interest rate changes, central bank policies, and economic data releases influence liquidity and volatility.
+- Major macro events can **cause sudden moves**, triggering stop hunts and liquidity sweeps.
+- Aligning trades with macro context increases the probability of success and reduces risk of trading against institutional flow.
+
+### DXY Correlation
+- Many markets, especially crypto and commodities, are inversely correlated with the DXY.
+    - **DXY up → USD strengthens → risk assets (crypto, gold) often fall**
+    - **DXY down → USD weakens → risk assets often rise**
+- Monitoring DXY helps predict potential **liquidity targeting** zones, as institutional traders may rotate capital based on USD strength.
+
+### Combining Macro + Liquidity + Structure
+1. Identify **key macro events** (Fed decisions, CPI, employment reports, etc.) on your calendar.
+2. Observe **DXY movements** for trend alignment.
+3. Map **market structure and liquidity zones** in your target asset.
+4. Confirm trades with **volume and FVGs** for high-probability setups.
+
+### Practical Tips
+- Don’t trade large macro events blindly — wait for price to **react to liquidity and structure**.
+- Use DXY as a **guide**, not a sole signal; combine with liquidity analysis.
+- Historical patterns around economic releases can highlight **where liquidity pools may form**.
+
+### Key Takeaways
+- Macro fundamentals set the **context for institutional flow**.
+- DXY correlation is a powerful tool to **predict directional bias** in risk assets.
+- Combine macro analysis with liquidity, MSB, and FVGs for **well-aligned trades**.
+""")
+
+    st.video("https://www.youtube.com/watch?v=xU1S0DxrNJM")
+    st.video("https://www.youtube.com/watch?v=8jK3dDBhK0Y")
 
 # --- PAGE 2: CHARTS ---
 if page == "Charts":
