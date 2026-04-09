@@ -196,17 +196,18 @@ if page == "Mastery (Learning)":
     st.video("https://www.youtube.com/watch?v=kduJOzcMkpI")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- THE FIVE PILLARS: INSTITUTIONAL PROTOCOL ---
-st.divider()
-st.header("🏛️ Technical Analysis")
+# --- PAGE 1: TECHNICAL ANALYSIS ---
+if page == "Mastery (Learning)":
+    st.divider()
+    st.header("🏛️ Technical Analysis")
 
-t1, t2, t3, t4, t5 = st.tabs([
-    "🏦 Liquidity", 
-    "🕯️ Price Action", 
-    "🌊 Volume", 
-    "📈 Structure", 
-    "🌎 Fundamental"
-])
+    t1, t2, t3, t4, t5 = st.tabs([
+        "🏦 Liquidity", 
+        "🕯️ Price Action", 
+        "🌊 Volume", 
+        "📈 Structure", 
+        "🌎 Fundamental"
+    ])
 
 # --- Tab 1: Liquidity & Whale Behavior ---
 with t1:
