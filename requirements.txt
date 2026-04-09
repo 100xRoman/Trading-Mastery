@@ -1,4 +1,8 @@
-streamlit
-pandas
-ta
-yfinance
+streamlit          # Web app framework
+pandas             # Data handling and calculations
+numpy              # Numeric operations
+yfinance           # Historical price & OHLCV data
+ta                 # Technical indicators (RSI, MACD, MA, ATR, etc.)
+tradingview-ta     # TradingView technical analysis API
+requests           # Fetch news & external API data
+textblob           # Sentiment analysis
