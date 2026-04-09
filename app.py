@@ -202,7 +202,7 @@ st.header("🏛️ Technical Analysis")
 st.info("These pillars represent the 'Logic' behind why price moves. Indicators tell you 'When,' but Pillars tell you 'Why.'")
 
 # Create tabs
-t1, t2, t3, t4, t5 = st.tabs([
+t1, t2, t3, t4, t5 = tabs([
     "🏦 Liquidity", 
     "🕯️ Price Action", 
     "🌊 Volume", 
