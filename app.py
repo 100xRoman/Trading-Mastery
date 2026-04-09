@@ -914,98 +914,87 @@ if page == "Tools":
         st.markdown('</div>', unsafe_allow_html=True)
 
 import streamlit as st
-from tradingview_ta import TA_Handler, Interval
+from tradingview_ta import TA_Handler
 import yfinance as yf
 from textblob import TextBlob
 import requests
 import time
+import numpy as np
 
 # --- PAGE 4: TRADE BOT ---
 if page == "Trade Bot":
-    st.title("🤖 Trade Bot")
+    st.title("🤖 Trade Bot - God Mode")
 
     # --- Select Coin ---
     coin_symbol = st.selectbox("Select Coin", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"])
-
-    # --- Select Intervals ---
     intervals = ["1h", "4h", "1d"]
 
-    # --- Execute Button ---
     if st.button("Execute Search"):
         progress = st.progress(0)
         status_text = st.empty()
-        total_steps = len(intervals) + 3  # intervals + news + score + risk
+        total_steps = len(intervals) + 4
         step = 0
 
         def update_progress():
             percent = int((step / total_steps) * 100)
             progress.progress(percent)
-            status_text.text(f"Progress: {percent}/{total_steps}")
+            status_text.text(f"Progress: {percent}% ({step}/{total_steps})")
 
         results = []
 
-        # --- Multi-Timeframe TA ---
+        # --- Step 1: Fetch Indicators per Timeframe ---
         for tf in intervals:
             try:
                 handler = TA_Handler(
                     symbol=coin_symbol,
                     screener="crypto",
                     exchange="BINANCE",
-                    interval=getattr(Interval, f"INTERVAL_{tf.upper()}")
+                    interval=tf
                 )
                 analysis = handler.get_analysis()
                 indicators = analysis.indicators
 
-                # Indicator values
-                rsi = indicators.get("RSI", None)
-                ma20 = indicators.get("MA20", None)
-                ma50 = indicators.get("MA50", None)
-                macd = indicators.get("MACD.macd", None)
-                obv = indicators.get("OBV", None)
-                atr = indicators.get("ATR", None)
-                kc_upper = indicators.get("KCUpper", None)
-                kc_lower = indicators.get("KCLower", None)
-                ichimoku = indicators.get("IchimokuCloud", None)
-                cci = indicators.get("CCI20", None)
-                stoch = indicators.get("Stoch.K", None)
+                # Assign all main indicators
+                res = {
+                    "tf": tf,
+                    "rsi": indicators.get("RSI"),
+                    "ma20": indicators.get("MA20"),
+                    "ma50": indicators.get("MA50"),
+                    "macd": indicators.get("MACD.macd"),
+                    "obv": indicators.get("OBV"),
+                    "atr": indicators.get("ATR"),
+                    "kc_upper": indicators.get("KCUpper"),
+                    "kc_lower": indicators.get("KCLower"),
+                    "ichimoku": indicators.get("IchimokuCloud"),
+                    "cci": indicators.get("CCI20"),
+                    "stoch": indicators.get("Stoch.K"),
+                    "close": indicators.get("close"),
+                    "summary": analysis.summary
+                }
 
-                # --- Fibonacci ---
+                # Fibonacci
                 hist = yf.download(coin_symbol.replace("USDT", "-USD"), period="60d", interval="1d", progress=False)
                 if not hist.empty:
                     high = hist['High'].max()
                     low = hist['Low'].min()
-                    fib_levels = {
+                    res["fib"] = {
                         "0.236": high - 0.236*(high-low),
                         "0.382": high - 0.382*(high-low),
                         "0.618": high - 0.618*(high-low)
                     }
                 else:
-                    fib_levels = {}
+                    res["fib"] = {}
 
-                results.append({
-                    "tf": tf,
-                    "rsi": rsi,
-                    "ma20": ma20,
-                    "ma50": ma50,
-                    "macd": macd,
-                    "obv": obv,
-                    "atr": atr,
-                    "kc_upper": kc_upper,
-                    "kc_lower": kc_lower,
-                    "ichimoku": ichimoku,
-                    "cci": cci,
-                    "stoch": stoch,
-                    "fib": fib_levels,
-                    "close": indicators.get("close", 0)
-                })
+                results.append(res)
+
             except Exception as e:
                 st.warning(f"Error fetching {tf} data: {e}")
 
             step += 1
             update_progress()
-            time.sleep(0.2)  # small delay for progress bar
+            time.sleep(0.2)
 
-        # --- News Sentiment ---
+        # --- Step 2: Fetch News & AI Sentiment ---
         try:
             news_response = requests.get(
                 f"https://cryptopanic.com/api/v1/posts/?auth_token=demo&currencies={coin_symbol.replace('USDT','')}&public=true"
@@ -1014,47 +1003,121 @@ if page == "Trade Bot":
             sentiment_score = 0
             for news in news_items:
                 text = news.get("title", "") + " " + news.get("body", "")
-                blob = TextBlob(text)
-                sentiment_score += blob.sentiment.polarity
-            avg_sentiment = sentiment_score / max(len(news_items), 1)
+                sentiment_score += TextBlob(text).sentiment.polarity
+            avg_sentiment = sentiment_score / max(len(news_items),1)
         except:
             avg_sentiment = 0
 
         step += 1
         update_progress()
 
-        # --- Aggregate Recommendation ---
-        total_score = 0
-        for res in results:
+        # --- Step 3: AI-Enhanced Scoring ---
+        def compute_indicator_score(res):
             score = 0
-            # RSI
-            if res["rsi"]: score += 2 if res["rsi"] < 30 else -2 if res["rsi"] > 70 else 0
-            # MACD
-            if res["macd"]: score += 1 if res["macd"] > 0 else -1
-            # MA Crossover
-            if res["ma20"] and res["ma50"]: score += 1 if res["ma20"] > res["ma50"] else -1
-            # Ichimoku
-            if res["ichimoku"]: score += 1 if res["ichimoku"] > res["close"] else -1
-            total_score += score
+            weights = {
+                "rsi": 1.2,
+                "macd": 1.0,
+                "ma": 0.8,
+                "ichimoku": 1.0,
+                "stoch": 0.5,
+                "cci": 0.5,
+                "obv": 0.5
+            }
 
-        # News influence
-        if avg_sentiment > 0.1: total_score += 1
-        elif avg_sentiment < -0.1: total_score -= 1
+            close = res["close"]
+
+            # RSI
+            rsi = res["rsi"]
+            if rsi:
+                if rsi < 30: score += weights["rsi"]*2
+                elif rsi > 70: score -= weights["rsi"]*2
+
+            # MACD
+            macd = res["macd"]
+            if macd:
+                score += weights["macd"] if macd > 0 else -weights["macd"]
+
+            # MA Crossover
+            ma20, ma50 = res["ma20"], res["ma50"]
+            if ma20 and ma50:
+                score += weights["ma"] if ma20 > ma50 else -weights["ma"]
+
+            # Ichimoku
+            ichimoku = res["ichimoku"]
+            if ichimoku and close:
+                score += weights["ichimoku"] if ichimoku > close else -weights["ichimoku"]
+
+            # Stochastic
+            stoch = res["stoch"]
+            if stoch:
+                if stoch < 20: score += weights["stoch"]
+                elif stoch > 80: score -= weights["stoch"]
+
+            # CCI
+            cci = res["cci"]
+            if cci:
+                if cci < -100: score += weights["cci"]
+                elif cci > 100: score -= weights["cci"]
+
+            return score
+
+        total_score = sum([compute_indicator_score(r) for r in results])
+
+        # --- Step 4: Incorporate News Sentiment ---
+        if avg_sentiment > 0.1: total_score += 1.5
+        elif avg_sentiment < -0.1: total_score -= 1.5
 
         step += 1
         update_progress()
 
-        # --- Risk Assessment ---
-        last_atr = results[-1]["atr"] if results else None
-        last_close = results[-1]["close"] if results else 0
-        risk = "Low Risk" if last_atr and last_atr < 0.02*last_close else "High Risk"
+        # --- Step 5: Risk Assessment ---
+        risk_levels = []
+        for r in results:
+            atr = r["atr"]
+            close = r["close"]
+            if atr and close:
+                ratio = atr / close
+                if ratio < 0.01: risk_levels.append("Low")
+                elif ratio < 0.03: risk_levels.append("Medium")
+                else: risk_levels.append("High")
+            else:
+                risk_levels.append("Medium")
 
-        # --- Recommendation ---
-        if total_score >= 5: rec = "STRONG BUY"
-        elif total_score >= 2: rec = "BUY"
-        elif total_score <= -5: rec = "STRONG SELL"
-        elif total_score <= -2: rec = "SELL"
-        else: rec = "NEUTRAL"
+        if "High" in risk_levels: risk = "High Risk"
+        elif "Medium" in risk_levels: risk = "Medium Risk"
+        else: risk = "Low Risk"
+
+        step += 1
+        update_progress()
+
+        # --- Step 6: Recommendation ---
+        if total_score >= 6: rec = "STRONG BUY"
+        elif total_score >= 3: rec = "BUY"
+        elif total_score >= 1: rec = "WEAK BUY"
+        elif total_score > -1: rec = "NEUTRAL"
+        elif total_score > -3: rec = "WEAK SELL"
+        elif total_score > -6: rec = "SELL"
+        else: rec = "STRONG SELL"
+
+        step += 1
+        update_progress()
+
+        # --- Step 7: Generate Trade Setup ---
+        trade_setup = []
+        for r in results:
+            fib = r["fib"]
+            close = r["close"]
+            atr = r["atr"]
+            if close and atr:
+                entry = close
+                stop = close - atr*1.5
+                target = close + atr*2
+                trade_setup.append({
+                    "tf": r["tf"],
+                    "entry": round(entry, 2),
+                    "stop": round(stop, 2),
+                    "target": round(target, 2)
+                })
 
         step += 1
         update_progress()
@@ -1062,10 +1125,15 @@ if page == "Trade Bot":
         # --- Output ---
         st.subheader(f"📊 Recommendation: {rec}")
         st.write(f"⚠️ Risk Assessment: {risk}")
-        st.write(f"💹 Multi-timeframe Analysis:")
-        for res in results:
-            st.write(f"**{res['tf']}** → RSI:{res['rsi']}, MA20:{res['ma20']}, MA50:{res['ma50']}, MACD:{res['macd']}, OBV:{res['obv']}")
-            st.write(f"ATR:{res['atr']}, KC Upper:{res['kc_upper']}, KC Lower:{res['kc_lower']}, Ichimoku:{res['ichimoku']}")
-            st.write(f"CCI:{res['cci']}, Stoch:{res['stoch']}, Fibonacci:{res['fib']}")
         st.write(f"📰 Avg News Sentiment Score: {avg_sentiment:.2f}")
-        st.success("✅ Trade Bot Execution Complete!")
+
+        st.write("💹 Multi-Timeframe Indicators & Trade Setup:")
+        for idx, r in enumerate(results):
+            st.write(f"**{r['tf']}** → RSI:{r['rsi']}, MA20:{r['ma20']}, MA50:{r['ma50']}, MACD:{r['macd']}, OBV:{r['obv']}")
+            st.write(f"ATR:{r['atr']}, KC Upper:{r['kc_upper']}, KC Lower:{r['kc_lower']}, Ichimoku:{r['ichimoku']}")
+            st.write(f"CCI:{r['cci']}, Stoch:{r['stoch']}, Fibonacci:{r['fib']}")
+            setup = trade_setup[idx]
+            st.write(f"Trade Setup → Entry:{setup['entry']}, Stop:{setup['stop']}, Target:{setup['target']}")
+            st.divider()
+
+        st.success("✅ God Mode Trade Bot Execution Complete!")
