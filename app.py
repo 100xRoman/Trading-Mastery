@@ -913,15 +913,15 @@ if page == "Tools":
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-# --- PAGE 4: Ultimate God-Mode Trade Bot ---
-if page == "Ultimate God-Mode Trade Bot":
+# --- PAGE 4: Trade Bot ---
+if page == "Trade Bot":
     import streamlit as st
     from tradingview_ta import TA_Handler, Interval, TA_HandlerException
     import pandas as pd
     from textblob import TextBlob
     import requests
 
-    st.title("⚡ Ultimate God-Mode Trade Bot")
+    st.title("⚡ Ultimate Trade Bot")
     st.subheader("Live AI-driven multi-timeframe analysis with price action confirmation")
 
     # --- Symbol Input (any TradingView pair) ---
