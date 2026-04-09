@@ -800,12 +800,12 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
-# 1. TRADING JOURNAL
-with t_journal:
+    # 1. TRADING JOURNAL
+    with t_journal:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
 
-    # Initialize session state inside the tab
+    # Initialize session state
     if 'history' not in st.session_state: 
         st.session_state.history = []
 
@@ -828,14 +828,14 @@ with t_journal:
                 "P&L %": pct
             })
 
-        # Display table
-        if st.session_state.history:
-            st.table(pd.DataFrame(st.session_state.history))
+    # Display table
+    if st.session_state.history:
+        st.table(pd.DataFrame(st.session_state.history))
 
-        # Clear button
-        if st.button("Clear Journal"):
-            st.session_state.history = []
-            st.experimental_rerun()
+    # Clear button OUTSIDE the form
+    if st.button("Clear Journal"):
+        st.session_state.history = []
+        st.experimental_rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
