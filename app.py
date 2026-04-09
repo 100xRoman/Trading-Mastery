@@ -914,7 +914,7 @@ if page == "Tools":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # --- PAGE 4: Ultimate God-Mode Trade Bot ---
-if page == "Ultimate God-Mode Trade Bot":
+if page == "Trade Bot":
     import streamlit as st
     import pandas as pd
     from tradingview_ta import TA_Handler, Interval, TA_HandlerException
