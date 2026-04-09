@@ -935,10 +935,10 @@ if page == "Trade Bot":
         total_steps = len(intervals) + 4
         step = 0
 
-        def update_progress():
-            percent = int((step / total_steps) * 100)
-            progress.progress(percent)
-            status_text.text(f"Progress: {percent}% ({step}/{total_steps})")
+def update_progress():
+    progress_value = step / total_steps  # Float between 0.0 and 1.0
+    progress.progress(progress_value)
+    status_text.text(f"Progress: {int(progress_value*100)}% ({step}/{total_steps})")
 
         results = []
 
