@@ -954,7 +954,7 @@ if page == "Trade Bot":
         status = st.empty()
         step = 0
         def update():
-            nonlocal step
+            step
             step += 1
             progress.progress(min(step / 15, 1.0))
 
