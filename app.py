@@ -917,9 +917,6 @@ from tradingview_ta import TA_Handler, Interval, Exchange
 import requests
 import time
 
-# --- PAGE SELECTION ---
-page = st.sidebar.selectbox("Select Page", ["Home", "Portfolio", "Trade Bot"])
-
 # --- PAGE 4: TRADE BOT ---
 if page == "Trade Bot":
     st.title("💎 MEGA Trade Bot — QUANT FUND GOD MODE")
