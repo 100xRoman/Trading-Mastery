@@ -199,7 +199,6 @@ if page == "Mastery (Learning)":
 # --- THE FIVE PILLARS: INSTITUTIONAL PROTOCOL ---
 st.divider()
 st.header("🏛️ Technical Analysis")
-st.info("These pillars represent the 'Logic' behind why price moves. Indicators tell you 'When,' but Pillars tell you 'Why.'")
 
 t1, t2, t3, t4, t5 = st.tabs([
     "🏦 Liquidity", 
