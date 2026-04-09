@@ -919,186 +919,155 @@ import requests
 import time
 
 # --- PAGE 4: TRADE BOT ---
+import streamlit as st
+from tradingview_ta import TA_Handler, Interval
+import yfinance as yf
+from textblob import TextBlob
+import requests
+import time
+
 if page == "Trade Bot":
-    st.title("💎 MEGA Trade Bot — QUANT FUND GOD MODE")
-    st.subheader("Elite Multi-Timeframe, Multi-Indicator, News-Driven Engine")
+    st.title("🤖 Trade Bot")
 
-    import ccxt
-    import pandas as pd
-    import numpy as np
-    import ta
-    import time
-    import feedparser
-    from datetime import datetime, timedelta
-
-    # --- Coin Selector ---
-    coin_map = {
-        "BTC": "BTC/USDT",
-        "ETH": "ETH/USDT",
-        "SOL": "SOL/USDT",
-        "XRP": "XRP/USDT",
-        "BNB": "BNB/USDT"
-    }
-    coin_choice = st.selectbox("Select Asset", list(coin_map.keys()))
-    symbol = coin_map[coin_choice]
-
-    # --- Multi-Timeframe Settings ---
-    timeframes = ["1h", "4h", "1d"]
-    interval_labels = {"1h": "1 Hour", "4h": "4 Hours", "1d": "1 Day"}
+    # --- Select Coin ---
+    coin_symbol = st.selectbox("Select Coin", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"])
+    intervals = ["1h", "4h", "1d"]  # Multi-timeframe
 
     # --- Execute Button ---
-    if st.button("🚀 Execute Full Quant Analysis", use_container_width=True):
+    if st.button("Execute Search"):
         progress = st.progress(0)
-        status = st.empty()
+        status_text = st.empty()
+        total_steps = 10
         step = 0
-        def update():
-            step
-            step += 1
-            progress.progress(min(step / 15, 1.0))
 
-        try:
-            exchange = ccxt.binance()
-            multi_results = {}
+        def update_progress():
+            progress.progress(step / total_steps)
+            status_text.text(f"Step {step}/{total_steps}")
 
-            for tf in timeframes:
-                status.write(f"Fetching OHLCV data for {interval_labels[tf]}...")
-                ohlcv = exchange.fetch_ohlcv(symbol, timeframe=tf, limit=200)
-                df = pd.DataFrame(ohlcv, columns=["time","open","high","low","close","volume"])
-                df["time"] = pd.to_datetime(df["time"], unit="ms")
+        results = []
 
-                # --- Indicators ---
-                df["EMA20"] = df["close"].ewm(span=20).mean()
-                df["EMA50"] = df["close"].ewm(span=50).mean()
-                df["RSI"] = ta.momentum.RSIIndicator(df["close"], window=14).rsi()
-                df["MACD"] = ta.trend.MACD(df["close"]).macd_diff()
-                df["OBV"] = ta.volume.OnBalanceVolumeIndicator(df["close"], df["volume"]).on_balance_volume()
-                df["CCI"] = ta.trend.CCIIndicator(df["high"], df["low"], df["close"], window=20).cci()
-                df["Stoch"] = ta.momentum.StochasticOscillator(df["high"], df["low"], df["close"], window=14).stoch()
-                df["ATR"] = ta.volatility.AverageTrueRange(df["high"], df["low"], df["close"], window=14).average_true_range()
+        for tf in intervals:
+            try:
+                handler = TA_Handler(
+                    symbol=coin_symbol,
+                    screener="crypto",
+                    exchange="BINANCE",
+                    interval=getattr(Interval, f"INTERVAL_{tf.upper()}")
+                )
+                analysis = handler.get_analysis()
+                indicators = analysis.indicators
 
-                # Keltner Channels
-                kc = ta.volatility.KeltnerChannel(df["high"], df["low"], df["close"], window=20, window_atr=10)
-                df["KC_upper"] = kc.keltner_channel_hband()
-                df["KC_lower"] = kc.keltner_channel_lband()
+                # Indicator values
+                rsi = indicators.get("RSI", None)
+                ma20 = indicators.get("MA20", None)
+                ma50 = indicators.get("MA50", None)
+                macd = indicators.get("MACD.macd", None)
+                obv = indicators.get("OBV", None)
+                atr = indicators.get("ATR", None)
+                kc_upper = indicators.get("KCUpper", None)
+                kc_lower = indicators.get("KCLower", None)
+                ichimoku = indicators.get("IchimokuCloud", None)
+                cci = indicators.get("CCI20", None)
+                stoch = indicators.get("Stoch.K", None)
 
-                # Ichimoku Cloud (simplified)
-                high9 = df["high"].rolling(9).max()
-                low9 = df["low"].rolling(9).min()
-                high26 = df["high"].rolling(26).max()
-                low26 = df["low"].rolling(26).min()
-                df["tenkan"] = (high9 + low9)/2
-                df["kijun"] = (high26 + low26)/2
-                df["ichimoku_signal"] = np.where(df["tenkan"] > df["kijun"], 1, -1)
-
-                # Fibonacci levels
-                last_close = df["close"].iloc[-1]
-                fib_high = df["high"].max()
-                fib_low = df["low"].min()
-                fib_levels = {
-                    "0.236": fib_high - 0.236*(fib_high - fib_low),
-                    "0.382": fib_high - 0.382*(fib_high - fib_low),
-                    "0.5": fib_high - 0.5*(fib_high - fib_low),
-                    "0.618": fib_high - 0.618*(fib_high - fib_low),
-                    "0.786": fib_high - 0.786*(fib_high - fib_low),
-                }
-
-                # Liquidity Sweep
-                last = df.iloc[-1]
-                prev = df.iloc[-2]
-                sweep_up = last["high"] > prev["high"] and last["close"] < last["open"]
-                sweep_down = last["low"] < prev["low"] and last["close"] > last["open"]
-
-                # Volume spike
-                vol_signal = "NEUTRAL"
-                vol_ma = df["volume"].rolling(20).mean().iloc[-1]
-                if last["volume"] > vol_ma * 1.5:
-                    vol_signal = "BUY" if last["close"] > last["open"] else "SELL"
-
-                # News Sentiment
-                news_score = 0
-                feed = feedparser.parse("https://cryptopanic.com/rss/")
-                for entry in feed.entries[:10]:
-                    t = entry.title.lower()
-                    if any(x in t for x in ["bull","rally","surge"]):
-                        news_score += 1
-                    elif any(x in t for x in ["crash","hack","ban"]):
-                        news_score -= 1
-
-                # --- Scoring ---
-                score = 0
-                score += 3 if last["EMA20"] > last["EMA50"] else -3
-                if last["RSI"] > 70: score -= 2
-                elif last["RSI"] < 30: score += 2
-                score += 1 if last["MACD"] > 0 else -1
-                score += last["ichimoku_signal"] * 2
-                score += 2 if vol_signal=="BUY" else -2 if vol_signal=="SELL" else 0
-                score += 4 if sweep_down else -4 if sweep_up else 0
-                score += news_score
-
-                # Risk
-                atr_pct = last["ATR"]/last["close"]
-                risk = "🔴 HIGH RISK" if atr_pct > 0.02 else "🟢 LOW RISK"
-
-                # Signal
-                if score >= 6: signal = "🔥 STRONG BUY"
-                elif score >= 2: signal = "✅ BUY"
-                elif score <= -6: signal = "💀 STRONG SELL"
-                elif score <= -2: signal = "⚠️ SELL"
-                else: signal = "➖ NEUTRAL"
-
-                # Entry / SL / TP
-                price = last["close"]
-                if "BUY" in signal:
-                    entry, sl, tp = price, price - last["ATR"]*2, price + last["ATR"]*4
-                elif "SELL" in signal:
-                    entry, sl, tp = price, price + last["ATR"]*2, price - last["ATR"]*4
+                # --- Fibonacci ---
+                hist = yf.download(coin_symbol.replace("USDT", "-USD"), period="60d", interval="1d")
+                if not hist.empty:
+                    high = hist['High'].max()
+                    low = hist['Low'].min()
+                    fib_levels = {
+                        "0.236": high - 0.236*(high-low),
+                        "0.382": high - 0.382*(high-low),
+                        "0.618": high - 0.618*(high-low)
+                    }
                 else:
-                    entry = sl = tp = 0
+                    fib_levels = {}
 
-                confidence = min(int(abs(score)*10),100)
+                results.append({
+                    "tf": tf,
+                    "rsi": rsi,
+                    "ma20": ma20,
+                    "ma50": ma50,
+                    "macd": macd,
+                    "obv": obv,
+                    "atr": atr,
+                    "kc_upper": kc_upper,
+                    "kc_lower": kc_lower,
+                    "ichimoku": ichimoku,
+                    "cci": cci,
+                    "stoch": stoch,
+                    "fib": fib_levels
+                })
+                step += 1
+                update_progress()
+                time.sleep(0.3)  # minor wait to simulate loading
 
-                # Store results per timeframe
-                multi_results[tf] = {
-                    "signal": signal,
-                    "risk": risk,
-                    "confidence": confidence,
-                    "entry": entry,
-                    "sl": sl,
-                    "tp": tp,
-                    "fib": fib_levels,
-                    "vol_signal": vol_signal,
-                    "sweep": "Bullish" if sweep_down else "Bearish" if sweep_up else "None",
-                    "score": score,
-                    "last_close": last_close
-                }
+            except Exception as e:
+                st.warning(f"Error fetching {tf} data: {e}")
+                step += 1
+                update_progress()
 
-                update()
-                time.sleep(0.5)
+        # --- News Sentiment (fast fetch) ---
+        try:
+            news_response = requests.get(f"https://cryptopanic.com/api/v1/posts/?auth_token=demo&currencies={coin_symbol.replace('USDT','')}&public=true")
+            news_items = news_response.json().get("results", [])[:5]  # Top 5 recent news
+            sentiment_score = 0
+            for news in news_items:
+                text = news.get("title", "") + " " + news.get("body", "")
+                blob = TextBlob(text)
+                sentiment_score += blob.sentiment.polarity
+            avg_sentiment = sentiment_score / max(len(news_items), 1)
+        except:
+            avg_sentiment = 0
 
-            # =========================
-            # DISPLAY
-            # =========================
-            for tf, res in multi_results.items():
-                st.divider()
-                st.subheader(f"⏱ {interval_labels[tf]} Analysis")
-                c1,c2,c3 = st.columns(3)
-                c1.metric("Signal", res["signal"])
-                c2.metric("Risk", res["risk"])
-                c3.metric("Confidence", f"{res['confidence']}%")
+        step += 1
+        update_progress()
 
-                st.write("### 🎯 Levels")
-                st.write(f"Entry: {res['entry']:.2f}, Stop Loss: {res['sl']:.2f}, Take Profit: {res['tp']:.2f}")
+        # --- Aggregate Recommendation ---
+        total_score = 0
+        for res in results:
+            score = 0
+            # RSI
+            if res["rsi"]: score += 2 if res["rsi"] < 30 else -2 if res["rsi"] > 70 else 0
+            # MACD
+            if res["macd"]: score += 1 if res["macd"] > 0 else -1
+            # MA Crossover
+            if res["ma20"] and res["ma50"]: score += 1 if res["ma20"] > res["ma50"] else -1
+            # Ichimoku
+            if res["ichimoku"]: score += 1 if res["ichimoku"] > indicators.get("close", 0) else -1
+            total_score += score
 
-                st.write("### 🔹 Fibonacci Levels")
-                for k,v in res["fib"].items():
-                    st.write(f"{k}: {v:.2f}")
+        # News influence
+        if avg_sentiment > 0.1: total_score += 1
+        elif avg_sentiment < -0.1: total_score -= 1
 
-                st.write("### 🧠 Breakdown")
-                st.write(f"Liquidity Sweep: {res['sweep']}")
-                st.write(f"Volume Signal: {res['vol_signal']}")
-                st.write(f"Score: {res['score']}")
+        step += 1
+        update_progress()
 
-            st.success("💎 MEGA QUANT FUND ANALYSIS COMPLETE 🚀")
+        # --- Risk Assessment ---
+        last_atr = results[-1]["atr"] if results else None
+        last_close = indicators.get("close", 0)
+        risk = "Low Risk" if last_atr and last_atr < 0.02*last_close else "High Risk"
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+        # --- Recommendation ---
+        if total_score >= 5: rec = "STRONG BUY"
+        elif total_score >= 2: rec = "BUY"
+        elif total_score <= -5: rec = "STRONG SELL"
+        elif total_score <= -2: rec = "SELL"
+        else: rec = "NEUTRAL"
+
+        step += 1
+        update_progress()
+
+        # --- Output ---
+        st.subheader(f"📊 Recommendation: {rec}")
+        st.write(f"⚠️ Risk Assessment: {risk}")
+        st.write(f"💹 Multi-timeframe Analysis:")
+        for res in results:
+            st.write(f"**{res['tf']}** → RSI:{res['rsi']}, MA20:{res['ma20']}, MA50:{res['ma50']}, MACD:{res['macd']}, OBV:{res['obv']}")
+            st.write(f"ATR:{res['atr']}, KC Upper:{res['kc_upper']}, KC Lower:{res['kc_lower']}, Ichimoku:{res['ichimoku']}")
+            st.write(f"CCI:{res['cci']}, Stoch:{res['stoch']}, Fibonacci:{res['fib']}")
+        st.write(f"📰 Avg News Sentiment Score: {avg_sentiment:.2f}")
+        step += 1
+        update_progress()
+        st.success("✅ Trade Bot Execution Complete!")
