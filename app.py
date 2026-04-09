@@ -798,8 +798,8 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
-   # 1. TRADING JOURNAL
-   with t_journal:
+# 1. TRADING JOURNAL
+with t_journal:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
     
