@@ -954,10 +954,7 @@ if st.button("Execute Search"):
         ichimoku_signals = {}
         kc_signals = {}
         atr_values = []
-
-    except Exception as e:
-        st.error(f"Error: {e}")
-
+        
             # --- Multi-Timeframe Analysis ---
             for tf in selected_intervals:
                 progress_text.text(f"Analyzing {asset} on {tf} timeframe...")
