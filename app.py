@@ -213,7 +213,7 @@ if page == "Mastery (Learning)":
     # --- Tab 1: Liquidity & Whale Behavior ---
     with t1:
         st.subheader("Liquidity & Whale Behavior")
-    st.write("""
+        st.write("""
 Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
 Without liquidity, markets freeze, spreads widen, and execution becomes unpredictable.
 
@@ -270,7 +270,7 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
     # --- Tab 2: Price Action ---
     with t2:
         st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
-    st.write("""
+        st.write("""
 Price action is the purest reflection of supply and demand in the market, and Fair Value Gaps (FVGs) are one of the most powerful tools to identify imbalances and institutional activity.
 
 ### What is a Fair Value Gap?
@@ -319,7 +319,7 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
     # --- Tab 3: Volume ---
     with t3:
         st.subheader("🌊 Advanced Volume & Effort vs. Result")
-    st.write("""
+        st.write("""
 Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn’t enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
 
 ### Effort vs. Result (Wyckoff Principle)
@@ -360,7 +360,7 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
     # --- Tab 4: Market Structure ---
     with t4:
         st.subheader("📈 Technical Market Structure (MSB)")
-    st.write("""
+        st.write("""
 Understanding **market structure** is essential for trading like smart money. Market structure tells you **where price is likely headed**, and where liquidity might be targeted.
 
 ### Basics of Market Structure
@@ -397,7 +397,7 @@ Understanding **market structure** is essential for trading like smart money. Ma
     # --- Tab 5: Macro Fundamentals ---
     with t5:
         st.subheader("🌎 Macro Fundamentals & DXY Correlation")
-    st.write("""
+        st.write("""
 Understanding **macro fundamentals** is crucial for anticipating market moves and aligning with smart money flows. Large institutions pay attention to global economic conditions, interest rates, and currency strength, especially the **US Dollar Index (DXY)**.
 
 ### Why Macro Matters
