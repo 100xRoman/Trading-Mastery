@@ -637,15 +637,15 @@ def monte_carlo(trades, runs=100):
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
     
-t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
-    "📊 Journal",
-    "📈 Compound",
-    "🎯 DCA",
-    "⚖️ Breakeven",
-    "📏 Position %",
-    "⚠️ Stress Test",
-    "🧠 Sentiment"
-])
+    t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
+        "📊 Journal",
+        "📈 Compound",
+        "🎯 DCA",
+        "⚖️ Breakeven",
+        "📏 Position %",
+        "⚠️ Stress Test",
+        "🧠 Sentiment"
+    ])
 
    # 1. TRADING JOURNAL
 with t_journal:
