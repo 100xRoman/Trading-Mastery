@@ -33,9 +33,9 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Trading Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("MENU", ["Mastery (Learning)", "Charts", "Tools"])
+    page = st.radio("MENU", ["Mastery (Learning)", "Charts", "Tools", "Trade Bot"])
     st.divider()
-    st.caption("℗Romanstrading")
+    st.caption("℗Romanstrades")
 
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
@@ -911,3 +911,168 @@ if page == "Tools":
         st.image("https://alternative.me/crypto/fear-and-greed-index.png", caption="Fear & Greed Index")
         
         st.markdown('</div>', unsafe_allow_html=True)
+
+import streamlit as st
+from tradingview_ta import TA_Handler, Interval, Exchange
+import requests
+import time
+
+# --- PAGE SELECTION ---
+page = st.sidebar.selectbox("Select Page", ["Home", "Portfolio", "Trade Bot"])
+
+# --- PAGE 4: TRADE BOT ---
+if page == "Trade Bot":
+    st.title("🤖 Trade Bot Pro")
+    st.info("AI-Powered Multi-Timeframe Market Predictions & Trade Insights")
+
+    # --- Coin Selection Dropdown (Flap) ---
+    asset = st.selectbox("Select Coin", ["BTC", "ETH", "SOL", "XRP", "BNB"])
+
+    # --- Timeframe Selection ---
+    intervals = {"1h": Interval.INTERVAL_1_HOUR,
+                 "4h": Interval.INTERVAL_4_HOURS,
+                 "1d": Interval.INTERVAL_1_DAY}
+    selected_intervals = st.multiselect("Select Timeframes", list(intervals.keys()), default=["1h", "4h", "1d"])
+
+    # --- Execute Search Button ---
+    if st.button("Execute Search"):
+        progress_text = st.empty()
+        progress_bar = st.progress(0)
+        
+        # --- Simulate progress dynamically as data loads ---
+        total_steps = len(selected_intervals) + 3  # +3 for news, Fibonacci, final calculations
+        current_step = 0
+
+        def update_progress():
+            nonlocal current_step
+            current_step += 1
+            progress_bar.progress(min(current_step / total_steps, 1.0))
+        
+        try:
+            multi_score = 0
+            summaries = {}
+            ma_summary = {}
+            osc_summary = {}
+            ichimoku_signals = {}
+            kc_signals = {}
+            atr_values = []
+
+            # --- Multi-Timeframe Analysis ---
+            for tf in selected_intervals:
+                progress_text.text(f"Analyzing {asset} on {tf} timeframe...")
+                handler = TA_Handler(
+                    symbol=f"{asset}USDT",
+                    screener="crypto",
+                    exchange="BINANCE",
+                    interval=intervals[tf]
+                )
+                analysis = handler.get_analysis()
+                
+                summaries[tf] = analysis.summary
+                ma_summary[tf] = analysis.moving_averages
+                osc_summary[tf] = analysis.oscillators
+
+                rec_map = {"STRONG_BUY": 3, "BUY": 2, "NEUTRAL": 0, "SELL": -2, "STRONG_SELL": -3}
+                multi_score += rec_map.get(analysis.summary.get("RECOMMENDATION", "NEUTRAL"), 0)
+
+                atr = analysis.indicators.get("ATR", 0)
+                atr_values.append(atr)
+
+                ichimoku_cloud = analysis.indicators.get("IchimokuCloud", None)
+                if ichimoku_cloud:
+                    ichimoku_signals[tf] = "BUY" if ichimoku_cloud > analysis.indicators.get("close", 0) else "SELL"
+
+                kc_upper = analysis.indicators.get("KCUpper", None)
+                kc_lower = analysis.indicators.get("KCLower", None)
+                price = analysis.indicators.get("close", 0)
+                if kc_upper and kc_lower:
+                    if price > kc_upper:
+                        kc_signals[tf] = "SELL"
+                    elif price < kc_lower:
+                        kc_signals[tf] = "BUY"
+                    else:
+                        kc_signals[tf] = "NEUTRAL"
+                
+                time.sleep(0.5)  # Simulate load time
+                update_progress()
+
+            # --- Determine Trade Signal ---
+            if multi_score >= 6:
+                trade_signal = "Strong Buy"
+            elif 3 <= multi_score < 6:
+                trade_signal = "Weak Buy"
+            elif -3 < multi_score < 3:
+                trade_signal = "Neutral"
+            elif -6 < multi_score <= -3:
+                trade_signal = "Weak Sell"
+            else:
+                trade_signal = "Strong Sell"
+
+            avg_atr = sum(atr_values)/len(atr_values) if atr_values else 0
+            risk_level = "High Risk" if avg_atr > 0 else "Low Risk"
+
+            update_progress()
+
+            # --- Fibonacci-based Trade Setup ---
+            last_tf = selected_intervals[-1]
+            last_analysis = TA_Handler(
+                symbol=f"{asset}USDT",
+                screener="crypto",
+                exchange="BINANCE",
+                interval=intervals[last_tf]
+            ).get_analysis()
+            high = last_analysis.indicators.get("HIGH", None)
+            low = last_analysis.indicators.get("LOW", None)
+            if high and low:
+                diff = high - low
+                entry = low + diff * 0.382
+                target = low + diff * 0.618
+                stop = low
+                rr_ratio = (target - entry) / (entry - stop)
+            else:
+                entry = target = stop = rr_ratio = None
+
+            update_progress()
+
+            # --- News Section ---
+            st.markdown("### 📰 Relevant News")
+            try:
+                news_api_key = "YOUR_NEWSAPI_KEY"
+                url = f"https://newsapi.org/v2/everything?q={asset}&sortBy=publishedAt&apiKey={news_api_key}"
+                response = requests.get(url).json()
+                articles = response.get("articles", [])[:5]
+                if articles:
+                    for a in articles:
+                        st.markdown(f"- [{a['title']}]({a['url']})")
+                else:
+                    st.info("No recent news found.")
+            except:
+                st.info("News API not configured, using placeholders.")
+                st.markdown(f"- {asset} market movements impacting trades. [Read more](https://example.com)")
+
+            update_progress()
+            progress_text.text("Analysis Complete ✅")
+            progress_bar.progress(1.0)
+
+            # --- Display Trade Results ---
+            st.markdown(f"### 📊 Trade Signal: **{trade_signal}**")
+            st.markdown(f"### ⚠️ Risk Level: **{risk_level}**")
+            if entry:
+                st.markdown("### 📝 Suggested Trade Setup")
+                st.markdown(f"- Entry: {entry:.2f}")
+                st.markdown(f"- Stop-Loss: {stop:.2f}")
+                st.markdown(f"- Take-Profit: {target:.2f}")
+                st.markdown(f"- Risk/Reward Ratio: {rr_ratio:.2f}")
+
+            # --- Multi-Timeframe Indicator Summaries ---
+            st.markdown("### ⏱ Multi-Timeframe Indicator Summaries")
+            for tf in selected_intervals:
+                st.markdown(f"#### {tf} Summary")
+                st.write(summaries[tf])
+                st.write("MA:", ma_summary[tf])
+                st.write("Oscillators:", osc_summary[tf])
+                st.write("Ichimoku Signal:", ichimoku_signals.get(tf, "N/A"))
+                st.write("Keltner Signal:", kc_signals.get(tf, "N/A"))
+
+        except Exception as e:
+            st.error(f"Failed to generate trade signal: {e}")
