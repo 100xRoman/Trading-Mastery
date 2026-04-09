@@ -931,7 +931,11 @@ if page == "Trade Bot":
 
     # --- Select Coin ---
     coin_symbol = st.selectbox("Select Coin", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"])
-    intervals = ["1h", "4h", "1d"]  # Multi-timeframe
+from tradingview_ta import Interval
+
+Interval.INTERVAL_1_HOUR
+Interval.INTERVAL_4_HOURS
+Interval.INTERVAL_1_DAY
 
     # --- Execute Button ---
     if st.button("Execute Search"):
