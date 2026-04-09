@@ -203,7 +203,7 @@ if page == "Mastery (Learning)":
     
     t1, t2, t3, t4, t5 = st.tabs(["🏦 Liquidity", "🕯️ Price Action", "🌊 Volume", "📈 Structure", "🌎 Fundamental"])
 
-with t1:
+    with t1:
     st.subheader("Liquidity & Whale Behavior")
     st.write("""
     Liquidity is one of the most important forces in any market. Large participants such as banks and hedge funds cannot simply execute massive buy or sell orders without affecting price. To enter a $500M position, they need enough opposing orders in the market to fill it efficiently.
