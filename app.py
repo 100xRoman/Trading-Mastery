@@ -196,7 +196,6 @@ if page == "Mastery (Learning)":
     st.video("https://www.youtube.com/watch?v=kduJOzcMkpI")
     st.markdown('</div>', unsafe_allow_html=True)
 
-if page == "Mastery (Learning)":
     # --- THE FIVE PILLARS: INSTITUTIONAL PROTOCOL ---
     st.divider()
     st.header("🏛️ Technical Analysis")
