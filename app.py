@@ -935,26 +935,28 @@ if page == "Trade Bot":
     selected_intervals = st.multiselect("Select Timeframes", list(intervals.keys()), default=["1h", "4h", "1d"])
 
     # --- Execute Search Button ---
-    if st.button("Execute Search"):
-        progress_text = st.empty()
-        progress_bar = st.progress(0)
-        
-        # --- Simulate progress dynamically as data loads ---
-        total_steps = len(selected_intervals) + 3  # +3 for news, Fibonacci, final calculations
-current_step = [0]  # use list instead
+if st.button("Execute Search"):
+    progress_text = st.empty()
+    progress_bar = st.progress(0)
 
-def update_progress():
-    current_step[0] += 1
-    progress_bar.progress(min(current_step[0] / total_steps, 1.0))
-        
-        try:
-            multi_score = 0
-            summaries = {}
-            ma_summary = {}
-            osc_summary = {}
-            ichimoku_signals = {}
-            kc_signals = {}
-            atr_values = []
+    total_steps = len(selected_intervals) + 3
+    current_step = [0]
+
+    def update_progress():
+        current_step[0] += 1
+        progress_bar.progress(min(current_step[0] / total_steps, 1.0))
+
+    try:  # ✅ SAME INDENT LEVEL as progress_text
+        multi_score = 0
+        summaries = {}
+        ma_summary = {}
+        osc_summary = {}
+        ichimoku_signals = {}
+        kc_signals = {}
+        atr_values = []
+
+    except Exception as e:
+        st.error(f"Error: {e}")
 
             # --- Multi-Timeframe Analysis ---
             for tf in selected_intervals:
