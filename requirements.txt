@@ -1,8 +1,8 @@
-streamlit==1.24.0          # Web app framework
-pandas==2.1.0              # Data handling and calculations
-numpy==1.26.5              # Numeric operations
-yfinance==0.2.41           # Historical price & OHLCV data
-ta==0.11.1                  # Technical indicators (RSI, MACD, MA, ATR, etc.)
-tradingview-ta==1.0.8       # TradingView technical analysis API
-requests==2.31.0           # Fetch news & external API data
-textblob==0.17.1           # Sentiment analysis
+streamlit==1.24.0
+pandas==2.1.0
+numpy==1.26.5
+yfinance==0.2.41
+ta==0.11.1
+tradingview-ta==1.0.8
+requests==2.31.0
+textblob==0.17.1
