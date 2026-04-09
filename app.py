@@ -914,42 +914,37 @@ if page == "Tools":
         st.markdown('</div>', unsafe_allow_html=True)
 
 import streamlit as st
-from tradingview_ta import TA_Handler, Interval, Exchange
-import requests
-import time
-
-# --- PAGE 4: TRADE BOT ---
-import streamlit as st
 from tradingview_ta import TA_Handler, Interval
 import yfinance as yf
 from textblob import TextBlob
 import requests
 import time
 
+# --- PAGE 4: TRADE BOT ---
 if page == "Trade Bot":
     st.title("🤖 Trade Bot")
 
     # --- Select Coin ---
     coin_symbol = st.selectbox("Select Coin", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT"])
-from tradingview_ta import Interval
 
-Interval.INTERVAL_1_HOUR
-Interval.INTERVAL_4_HOURS
-Interval.INTERVAL_1_DAY
+    # --- Select Intervals ---
+    intervals = ["1h", "4h", "1d"]
 
     # --- Execute Button ---
     if st.button("Execute Search"):
         progress = st.progress(0)
         status_text = st.empty()
-        total_steps = 10
+        total_steps = len(intervals) + 3  # intervals + news + score + risk
         step = 0
 
         def update_progress():
-            progress.progress(step / total_steps)
-            status_text.text(f"Step {step}/{total_steps}")
+            percent = int((step / total_steps) * 100)
+            progress.progress(percent)
+            status_text.text(f"Progress: {percent}/{total_steps}")
 
         results = []
 
+        # --- Multi-Timeframe TA ---
         for tf in intervals:
             try:
                 handler = TA_Handler(
@@ -975,7 +970,7 @@ Interval.INTERVAL_1_DAY
                 stoch = indicators.get("Stoch.K", None)
 
                 # --- Fibonacci ---
-                hist = yf.download(coin_symbol.replace("USDT", "-USD"), period="60d", interval="1d")
+                hist = yf.download(coin_symbol.replace("USDT", "-USD"), period="60d", interval="1d", progress=False)
                 if not hist.empty:
                     high = hist['High'].max()
                     low = hist['Low'].min()
@@ -1000,21 +995,22 @@ Interval.INTERVAL_1_DAY
                     "ichimoku": ichimoku,
                     "cci": cci,
                     "stoch": stoch,
-                    "fib": fib_levels
+                    "fib": fib_levels,
+                    "close": indicators.get("close", 0)
                 })
-                step += 1
-                update_progress()
-                time.sleep(0.3)  # minor wait to simulate loading
-
             except Exception as e:
                 st.warning(f"Error fetching {tf} data: {e}")
-                step += 1
-                update_progress()
 
-        # --- News Sentiment (fast fetch) ---
+            step += 1
+            update_progress()
+            time.sleep(0.2)  # small delay for progress bar
+
+        # --- News Sentiment ---
         try:
-            news_response = requests.get(f"https://cryptopanic.com/api/v1/posts/?auth_token=demo&currencies={coin_symbol.replace('USDT','')}&public=true")
-            news_items = news_response.json().get("results", [])[:5]  # Top 5 recent news
+            news_response = requests.get(
+                f"https://cryptopanic.com/api/v1/posts/?auth_token=demo&currencies={coin_symbol.replace('USDT','')}&public=true"
+            )
+            news_items = news_response.json().get("results", [])[:5]
             sentiment_score = 0
             for news in news_items:
                 text = news.get("title", "") + " " + news.get("body", "")
@@ -1038,7 +1034,7 @@ Interval.INTERVAL_1_DAY
             # MA Crossover
             if res["ma20"] and res["ma50"]: score += 1 if res["ma20"] > res["ma50"] else -1
             # Ichimoku
-            if res["ichimoku"]: score += 1 if res["ichimoku"] > indicators.get("close", 0) else -1
+            if res["ichimoku"]: score += 1 if res["ichimoku"] > res["close"] else -1
             total_score += score
 
         # News influence
@@ -1050,7 +1046,7 @@ Interval.INTERVAL_1_DAY
 
         # --- Risk Assessment ---
         last_atr = results[-1]["atr"] if results else None
-        last_close = indicators.get("close", 0)
+        last_close = results[-1]["close"] if results else 0
         risk = "Low Risk" if last_atr and last_atr < 0.02*last_close else "High Risk"
 
         # --- Recommendation ---
@@ -1072,6 +1068,4 @@ Interval.INTERVAL_1_DAY
             st.write(f"ATR:{res['atr']}, KC Upper:{res['kc_upper']}, KC Lower:{res['kc_lower']}, Ichimoku:{res['ichimoku']}")
             st.write(f"CCI:{res['cci']}, Stoch:{res['stoch']}, Fibonacci:{res['fib']}")
         st.write(f"📰 Avg News Sentiment Score: {avg_sentiment:.2f}")
-        step += 1
-        update_progress()
         st.success("✅ Trade Bot Execution Complete!")
