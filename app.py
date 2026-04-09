@@ -201,6 +201,7 @@ if page == "Mastery (Learning)":
     st.divider()
     st.header("🏛️ Technical Analysis")
 
+    # Define tabs here
     t1, t2, t3, t4, t5 = st.tabs([
         "🏦 Liquidity", 
         "🕯️ Price Action", 
@@ -209,9 +210,9 @@ if page == "Mastery (Learning)":
         "🌎 Fundamental"
     ])
 
-# --- Tab 1: Liquidity & Whale Behavior ---
-with t1:
-    st.subheader("Liquidity & Whale Behavior")
+    # --- Tab 1: Liquidity & Whale Behavior ---
+    with t1:
+        st.subheader("Liquidity & Whale Behavior")
     st.write("""
 Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
 Without liquidity, markets freeze, spreads widen, and execution becomes unpredictable.
@@ -260,15 +261,15 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
 - True edges occur after liquidity is captured  
 - Wait for reaction, not touch
 """)
-
-    st.video("https://www.youtube.com/watch?v=0UTvF4SWdQM")
-    st.video("https://www.youtube.com/watch?v=3e0u4vcnDcM")
-    st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
-    st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
-    st.video("https://www.youtube.com/watch?v=vVjV9VIsP0o")
-    
-with t2:
-    st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
+        st.video("https://www.youtube.com/watch?v=0UTvF4SWdQM")
+        st.video("https://www.youtube.com/watch?v=3e0u4vcnDcM")
+        st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
+        st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
+        st.video("https://www.youtube.com/watch?v=vVjV9VIsP0o")
+        
+    # --- Tab 2: Price Action ---
+    with t2:
+        st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
     st.write("""
 Price action is the purest reflection of supply and demand in the market, and Fair Value Gaps (FVGs) are one of the most powerful tools to identify imbalances and institutional activity.
 
@@ -311,13 +312,13 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
 - Combine FVG analysis with trend direction and other liquidity concepts for the highest probability setups.  
 - Fair Value Gaps exist across all timeframes — higher timeframes often provide more reliable signals.  
 """)
-
-    st.video("https://www.youtube.com/watch?v=3x4FQqf7X0E")
-    st.video("https://www.youtube.com/watch?v=jLxGqGZhzq4")
-    st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
-
-with t3:
-    st.subheader("🌊 Advanced Volume & Effort vs. Result")
+        st.video("https://www.youtube.com/watch?v=3x4FQqf7X0E")
+        st.video("https://www.youtube.com/watch?v=jLxGqGZhzq4")
+        st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
+    
+    # --- Tab 3: Volume ---
+    with t3:
+        st.subheader("🌊 Advanced Volume & Effort vs. Result")
     st.write("""
 Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn’t enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
 
@@ -352,13 +353,13 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
 - Look for areas where volume confirms or contradicts price movement to find high-probability setups.  
 - Using volume with **liquidity concepts and FVGs** gives a complete picture of the market’s hidden order flow.
 """)
-
-    st.video("https://www.youtube.com/watch?v=4C9F9R3QK2E")
-    st.video("https://www.youtube.com/watch?v=L9zKkeo3BjQ")
-    st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
-
-with t4:
-    st.subheader("📈 Technical Market Structure (MSB)")
+        st.video("https://www.youtube.com/watch?v=4C9F9R3QK2E")
+        st.video("https://www.youtube.com/watch?v=L9zKkeo3BjQ")
+        st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
+    
+    # --- Tab 4: Market Structure ---
+    with t4:
+        st.subheader("📈 Technical Market Structure (MSB)")
     st.write("""
 Understanding **market structure** is essential for trading like smart money. Market structure tells you **where price is likely headed**, and where liquidity might be targeted.
 
@@ -390,12 +391,12 @@ Understanding **market structure** is essential for trading like smart money. Ma
 - Always combine **MSB + FVG + Liquidity + Volume** for the most reliable setups.
 - Trading in alignment with market structure reduces risk and increases probability of success.
 """)
-
-    st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
-    st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
-
-with t5:
-    st.subheader("🌎 Macro Fundamentals & DXY Correlation")
+        st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
+        st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
+    
+    # --- Tab 5: Macro Fundamentals ---
+    with t5:
+        st.subheader("🌎 Macro Fundamentals & DXY Correlation")
     st.write("""
 Understanding **macro fundamentals** is crucial for anticipating market moves and aligning with smart money flows. Large institutions pay attention to global economic conditions, interest rates, and currency strength, especially the **US Dollar Index (DXY)**.
 
@@ -426,9 +427,8 @@ Understanding **macro fundamentals** is crucial for anticipating market moves an
 - DXY correlation is a powerful tool to **predict directional bias** in risk assets.
 - Combine macro analysis with liquidity, MSB, and FVGs for **well-aligned trades**.
 """)
-
-    st.video("https://www.youtube.com/watch?v=xU1S0DxrNJM")
-    st.video("https://www.youtube.com/watch?v=8jK3dDBhK0Y")
+        st.video("https://www.youtube.com/watch?v=xU1S0DxrNJM")
+        st.video("https://www.youtube.com/watch?v=8jK3dDBhK0Y")
 
 # --- PAGE 2: CHARTS ---
 if page == "Charts":
