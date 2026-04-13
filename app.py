@@ -37,6 +37,14 @@ with st.sidebar:
     st.divider()
     st.caption("℗Romanstrades")
 
+# --- Initialize session state ---
+if "active_video" not in st.session_state:
+    st.session_state.active_video = None
+
+# --- Function to set active video ---
+def load_video(url):
+    st.session_state.active_video = url
+
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
     st.title("🏛️ Indicators")
@@ -53,7 +61,8 @@ if page == "Mastery (Learning)":
     * **The 50-Level Pivot:** Use the 50 level as a macro bias filter. If the RSI is oscillating between 40 and 80, you are in a Bull Market. If it struggles to break 60 and drops to 20, you are in a Bear Market.
     """)
     
-    st.video("https://www.youtube.com/watch?v=z3fbVK5e5Io", start_time=1)
+if st.button("▶ Watch RSI Video"):
+    load_video("https://www.youtube.com/watch?v=z3fbVK5e5Io")    
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 2. MACD (MOVING AVERAGE CONVERGENCE DIVERGENCE) ---
@@ -67,7 +76,8 @@ if page == "Mastery (Learning)":
     * **Histogram Squeeze:** When the Histogram bars begin to shrink while the price is still rising, it indicates "momentum decay." This is your early warning to tighten stop losses before a pullback occurs.
     """)
     
-    st.video("https://www.youtube.com/watch?v=tSr6UorS9Ro", start_time=1)
+if st.button("▶ Watch MACD Video"):
+    load_video("https://www.youtube.com/watch?v=tSr6UorS9Ro")    
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 3. FIBONACCI RETRACEMENT ---
