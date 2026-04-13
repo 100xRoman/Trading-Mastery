@@ -61,8 +61,7 @@ if page == "Mastery (Learning)":
     * **The 50-Level Pivot:** Use the 50 level as a macro bias filter. If the RSI is oscillating between 40 and 80, you are in a Bull Market. If it struggles to break 60 and drops to 20, you are in a Bear Market.
     """)
     
-if st.button("▶ Watch RSI Video"):
-    load_video("https://www.youtube.com/watch?v=z3fbVK5e5Io")    
+    st.video("https://www.youtube.com/watch?v=z3fbVK5e5Io")
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 2. MACD (MOVING AVERAGE CONVERGENCE DIVERGENCE) ---
@@ -76,8 +75,7 @@ if st.button("▶ Watch RSI Video"):
     * **Histogram Squeeze:** When the Histogram bars begin to shrink while the price is still rising, it indicates "momentum decay." This is your early warning to tighten stop losses before a pullback occurs.
     """)
     
-if st.button("▶ Watch MACD Video"):
-    load_video("https://www.youtube.com/watch?v=tSr6UorS9Ro")    
+    st.video("https://www.youtube.com/watch?v=tSr6UorS9Ro")    
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 3. FIBONACCI RETRACEMENT ---
@@ -91,7 +89,7 @@ if st.button("▶ Watch MACD Video"):
     * **Confluence Trading:** Never trade a Fib level alone. Look for a Fib level that aligns with a previous Support/Resistance zone or a 200 EMA to increase your win rate significantly.
     """)
     
-    st.video("https://www.youtube.com/watch?v=oVMeymdZwWI", start_time=1)
+    st.video("https://www.youtube.com/watch?v=oVMeymdZwWI")
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --- 4. OBV (ON-BALANCE VOLUME) ---
