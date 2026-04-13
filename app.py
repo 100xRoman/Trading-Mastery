@@ -271,16 +271,16 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
 """)
         
 st.markdown("### Liquidity Basics")
-st.video("https://www.youtube.com/watch?v=n0twdDnSJRQ")
+st.video("https://www.youtube.com/watch?v=6E__nsyA0a8")
 
 st.markdown("### What Liquidity REALLY Is")
 st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
 
 st.markdown("### Liquidity Sweeps & Stop Hunts")
-st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
+st.video("https://www.youtube.com/watch?v=nJqOwTHVA60")
 
 st.markdown("### Liquidity Grabs Explained Visually")
-st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
+st.video("https://www.youtube.com/watch?v=X9bz--vwhvo")
         
     # --- Tab 2: Price Action ---
 with t2:
