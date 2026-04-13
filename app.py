@@ -261,16 +261,18 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
 - True edges occur after liquidity is captured  
 - Wait for reaction, not touch
 """)
-        st.write("""
-        ### Liquidity Basics
-        st.video("https://www.youtube.com/watch?v=n0twdDnSJRQ")
-        ### What Liquidity REALLY Is
-        st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
-        ### Liquidity Sweeps & Stop Hunts
-        st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
-        ### Liquidity Grabs Explained Visually
-        st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
-        """)
+        
+st.markdown("### Liquidity Basics")
+st.video("https://www.youtube.com/watch?v=n0twdDnSJRQ")
+
+st.markdown("### What Liquidity REALLY Is")
+st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
+
+st.markdown("### Liquidity Sweeps & Stop Hunts")
+st.video("https://www.youtube.com/watch?v=ziIw0c6SU1k")
+
+st.markdown("### Liquidity Grabs Explained Visually")
+st.video("https://www.youtube.com/watch?v=PEowkf--JUw")
         
     # --- Tab 2: Price Action ---
     with t2:
