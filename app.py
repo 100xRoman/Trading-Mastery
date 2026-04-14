@@ -218,9 +218,12 @@ if page == "Mastery (Learning)":
         "🌎 Fundamental"
     ])
 
-    # --- Tab 1: Liquidity & Whale Behavior ---
+    # =========================
+    # 🏦 TAB 1: LIQUIDITY
+    # =========================
     with t1:
         st.subheader("Liquidity & Whale Behavior")
+        
         st.write("""
 Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
 Without liquidity, markets freeze, spreads widen, and execution becomes unpredictable.
@@ -270,19 +273,14 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
 - Wait for reaction, not touch
 """)
         
-st.markdown("### Liquidity Basics")
-st.video("https://www.youtube.com/watch?v=6E__nsyA0a8")
-
-st.markdown("### What Liquidity REALLY Is")
-st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
-
-st.markdown("### Liquidity Sweeps & Stop Hunts")
-st.video("https://www.youtube.com/watch?v=nJqOwTHVA60")
-
-st.markdown("### Liquidity Grabs Explained Visually")
-st.video("https://www.youtube.com/watch?v=X9bz--vwhvo")
+        st.video("https://www.youtube.com/watch?v=6E__nsyA0a8")
+        st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
+        st.video("https://www.youtube.com/watch?v=nJqOwTHVA60")
+        st.video("https://www.youtube.com/watch?v=X9bz--vwhvo")
         
-    # --- Tab 2: Price Action ---
+    # =========================
+    # 🕯️ TAB 2: PRICE ACTION
+    # =========================
     with t2:
         st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
         st.write("""
@@ -327,11 +325,14 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
 - Combine FVG analysis with trend direction and other liquidity concepts for the highest probability setups.  
 - Fair Value Gaps exist across all timeframes — higher timeframes often provide more reliable signals.  
 """)
+        
         st.video("https://www.youtube.com/watch?v=3x4FQqf7X0E")
         st.video("https://www.youtube.com/watch?v=jLxGqGZhzq4")
         st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
     
-    # --- Tab 3: Volume ---
+    # =========================
+    # 🌊 TAB 3: VOLUME
+    # =========================
     with t3:
         st.subheader("🌊 Advanced Volume & Effort vs. Result")
         st.write("""
@@ -368,11 +369,14 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
 - Look for areas where volume confirms or contradicts price movement to find high-probability setups.  
 - Using volume with **liquidity concepts and FVGs** gives a complete picture of the market’s hidden order flow.
 """)
+        
         st.video("https://www.youtube.com/watch?v=4C9F9R3QK2E")
         st.video("https://www.youtube.com/watch?v=L9zKkeo3BjQ")
         st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
     
-    # --- Tab 4: Market Structure ---
+    # =========================
+    # 📈 TAB 4: STRUCTURE
+    # =========================
     with t4:
         st.subheader("📈 Technical Market Structure (MSB)")
         st.write("""
@@ -406,10 +410,13 @@ Understanding **market structure** is essential for trading like smart money. Ma
 - Always combine **MSB + FVG + Liquidity + Volume** for the most reliable setups.
 - Trading in alignment with market structure reduces risk and increases probability of success.
 """)
+        
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
     
-    # --- Tab 5: Macro Fundamentals ---
+    # =========================
+    # 🌎 TAB 5: FUNDAMENTALS
+    # =========================
     with t5:
         st.subheader("🌎 Macro Fundamentals & DXY Correlation")
         st.write("""
@@ -442,6 +449,7 @@ Understanding **macro fundamentals** is crucial for anticipating market moves an
 - DXY correlation is a powerful tool to **predict directional bias** in risk assets.
 - Combine macro analysis with liquidity, MSB, and FVGs for **well-aligned trades**.
 """)
+        
         st.video("https://www.youtube.com/watch?v=xU1S0DxrNJM")
         st.video("https://www.youtube.com/watch?v=8jK3dDBhK0Y")
 
