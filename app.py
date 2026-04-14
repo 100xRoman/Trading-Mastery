@@ -283,7 +283,7 @@ st.markdown("### Liquidity Grabs Explained Visually")
 st.video("https://www.youtube.com/watch?v=X9bz--vwhvo")
         
     # --- Tab 2: Price Action ---
-with t2:
+    with t2:
         st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
         st.write("""
 Price action is the purest reflection of supply and demand in the market, and Fair Value Gaps (FVGs) are one of the most powerful tools to identify imbalances and institutional activity.
@@ -332,7 +332,7 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
         st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
     
     # --- Tab 3: Volume ---
-with t3:
+    with t3:
         st.subheader("🌊 Advanced Volume & Effort vs. Result")
         st.write("""
 Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn’t enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
@@ -373,7 +373,7 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
         st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
     
     # --- Tab 4: Market Structure ---
-with t4:
+    with t4:
         st.subheader("📈 Technical Market Structure (MSB)")
         st.write("""
 Understanding **market structure** is essential for trading like smart money. Market structure tells you **where price is likely headed**, and where liquidity might be targeted.
@@ -410,7 +410,7 @@ Understanding **market structure** is essential for trading like smart money. Ma
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
     
     # --- Tab 5: Macro Fundamentals ---
-with t5:
+    with t5:
         st.subheader("🌎 Macro Fundamentals & DXY Correlation")
         st.write("""
 Understanding **macro fundamentals** is crucial for anticipating market moves and aligning with smart money flows. Large institutions pay attention to global economic conditions, interest rates, and currency strength, especially the **US Dollar Index (DXY)**.
