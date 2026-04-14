@@ -219,7 +219,7 @@ if page == "Mastery (Learning)":
     ])
 
     # --- Tab 1: Liquidity & Whale Behavior ---
-with t1:
+    with t1:
         st.subheader("Liquidity & Whale Behavior")
         st.write("""
 Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
