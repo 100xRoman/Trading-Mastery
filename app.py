@@ -8,7 +8,7 @@ import numpy as np
 import streamlit.components.v1 as components
 
 # --- TERMINAL CONFIG ---
-st.set_page_config(page_title="Trading Mastery", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
 
 # --- CUSTOM CSS (PREMIUM DARK TERMINAL) ---
 st.markdown("""
@@ -32,7 +32,7 @@ st.markdown("""
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown('<p class="sidebar-title">Trading Mastery</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sidebar-title">Crypto Mastery</p>', unsafe_allow_html=True)
     page = st.radio("MENU", ["Mastery (Learning)", "Charts", "Tools"])
     st.divider()
     st.caption("℗Romanstrades")
