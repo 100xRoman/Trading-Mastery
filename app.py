@@ -677,137 +677,6 @@ def titan_edge_engine(symbol, data_row, higher_tf_bias=None):
 
     except Exception as e:
         return {"error": str(e)}
-
-
-# =========================
-# 🔬 BACKTEST ENGINE
-# =========================
-def backtest(data):
-    balance = 1000
-    trades = []
-
-    for i in range(50, len(data) - 1):
-        row = data.iloc[i]
-        next_row = data.iloc[i + 1]
-
-        result = titan_edge_engine("BTC/USDT", row)
-
-        if result.get("signal") in ["LONG", "SHORT"]:
-            entry = result["entry"]
-            tp = result["tp"]
-            sl = result["sl"]
-
-            hit_tp = next_row["high"] >= tp if result["signal"] == "LONG" else next_row["low"] <= tp
-            hit_sl = next_row["low"] <= sl if result["signal"] == "LONG" else next_row["high"] >= sl
-
-            if hit_tp:
-                balance *= 1.02
-                outcome = 1
-            elif hit_sl:
-                balance *= 0.98
-                outcome = 0
-            else:
-                continue
-
-            trades.append({**result, "outcome": outcome, "balance": balance})
-
-            # log ML data
-            ml_dataset.append({
-                "rsi": result["rsi"],
-                "adx": result["adx"],
-                "volume_ratio": result["volume_ratio"],
-                "rr": result["rr"],
-                "score": result["score"],
-                "outcome": outcome
-            })
-
-    return pd.DataFrame(trades)
-
-
-# =========================
-# 📊 ANALYTICS
-# =========================
-def analyze(trades):
-    win_rate = trades["outcome"].mean()
-    return {
-        "trades": len(trades),
-        "win_rate": round(win_rate * 100, 2),
-        "final_balance": trades["balance"].iloc[-1] if len(trades) else 0
-    }
-
-
-# =========================
-# 🤖 ML MODEL
-# =========================
-def train_ml():
-    global ml_model
-    df = pd.DataFrame(ml_dataset)
-
-    if len(df) < 50:
-        return None
-
-    X = df[["rsi", "adx", "volume_ratio", "rr", "score"]]
-    y = df["outcome"]
-
-    model = RandomForestClassifier()
-    model.fit(X, y)
-
-    ml_model = model
-    return model
-
-
-def ml_filter(result):
-    if ml_model is None:
-        return True
-
-    features = [[
-        result["rsi"],
-        result["adx"],
-        result["volume_ratio"],
-        result["rr"],
-        result["score"]
-    ]]
-
-    prob = ml_model.predict_proba(features)[0][1]
-    return prob > 0.6
-
-
-# =========================
-# ⚙️ OPTIMIZATION
-# =========================
-def optimize(data):
-    best = None
-    best_score = -1
-
-    for _ in range(5):
-        trades = backtest(data)
-        stats = analyze(trades)
-
-        score = stats["win_rate"] * stats["final_balance"]
-
-        if score > best_score:
-            best_score = score
-            best = stats
-
-    return best
-
-
-# =========================
-# 🧪 MONTE CARLO
-# =========================
-def monte_carlo(trades, runs=100):
-    results = []
-
-    for _ in range(runs):
-        balance = 1000
-        shuffled = trades.sample(frac=1)
-
-        for _, t in shuffled.iterrows():
-            balance *= 1.02 if t["outcome"] == 1 else 0.98
-
-        results.append(balance)
-
-    return results
         
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
@@ -865,16 +734,30 @@ if page == "Tools":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # -----------------------------
-    # 2. COMPOUND CALCULATOR
-    # -----------------------------
-    with t_compound:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
-        s_bal = st.number_input("Starting Capital ($)", value=1000.0, key="comp_s")
-        n_doubles = st.number_input("Times to Double", value=5, step=1, key="comp_n")
-        st.metric("Final Balance", f"${s_bal * (2**n_doubles):,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
+# -----------------------------
+# 2. COMPOUND CALCULATOR
+# -----------------------------
+with t_compound:
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
+
+    s_bal = st.number_input("Starting Capital ($)", value=1000.0, key="comp_s")
+    n_doubles = st.number_input("Times to Double", value=5, step=1, key="comp_n")
+
+    balances = []
+    current = s_bal
+
+    for i in range(n_doubles + 1):
+        balances.append((i, current))
+        current *= 2
+
+    st.markdown("### Growth Breakdown")
+    for step, value in balances:
+        st.write(f"Double {step}: ${value:,.2f}")
+
+    st.metric("Final Balance", f"${balances[-1][1]:,.2f}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 3. DCA CALCULATOR
