@@ -741,21 +741,29 @@ with t_compound:
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
-    s_bal = st.number_input("Starting Capital ($)", value=1000.0, key="comp_s")
-    n_doubles = st.number_input("Times to Double", value=5, step=1, key="comp_n")
+    s_bal = st.number_input("Starting Capital ($)", min_value=0.0, value=0.0, key="comp_s")
+    n_doubles = st.number_input("Times to Double", min_value=0, step=1, value=0, key="comp_n")
 
-    balances = []
-    current = s_bal
+    if st.button("Enter"):
+        if s_bal <= 0 or n_doubles <= 0:
+            st.warning("Please enter valid values for both fields.")
+        else:
+            data = []
+            current = s_bal
 
-    for i in range(n_doubles + 1):
-        balances.append((i, current))
-        current *= 2
+            for i in range(n_doubles + 1):
+                data.append({
+                    "Step": i,
+                    "Balance ($)": f"${current:,.2f}"
+                })
+                current *= 2
 
-    st.markdown("### Growth Breakdown")
-    for step, value in balances:
-        st.write(f"Double {step}: ${value:,.2f}")
+            df = pd.DataFrame(data)
 
-    st.metric("Final Balance", f"${balances[-1][1]:,.2f}")
+            st.markdown("### Growth Table")
+            st.dataframe(df, use_container_width=True)
+
+            st.metric("Final Balance", f"${data[-1]['Balance ($)']}")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
