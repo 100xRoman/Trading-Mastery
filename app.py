@@ -547,136 +547,6 @@ if page == "Charts":
                 else:
                     st.success("✅ High R:R trade detected.")
     st.markdown('</div>', unsafe_allow_html=True)
-
-import ccxt
-import pandas as pd
-import streamlit as st
-from tradingview_ta import TA_Handler, Interval
-import time
-import random
-from datetime import datetime, timedelta
-
-def get_titan_apex_ultra(symbol, target_date):
-    # =========================
-    # 🧠 GLOBAL ML STORAGE
-    # =========================
-    global ml_dataset, ml_model
-    ml_dataset = []
-    ml_model = None
-
-    # =========================
-    # SYMBOL HANDLING
-    # =========================
-    try:
-        tv_symbol = symbol.replace("/", "")
-    except Exception as e:
-        # ✅ This works because `symbol` is defined in the function arguments
-        print(f"Error processing symbol '{symbol}': {e}")
-        tv_symbol = symbol  # fallback to original symbol if error occurs
-        
-# =========================
-# 🔥 CORE STRATEGY
-# =========================
-def titan_edge_engine(symbol, data_row, higher_tf_bias=None):
-    try:
-        cp = data_row["close"]
-        open_p = data_row["open"]
-        high = data_row["high"]
-        low = data_row["low"]
-
-        atr = data_row.get("ATR", cp * 0.02)
-        adx = data_row.get("ADX", 20)
-        rsi = data_row.get("RSI", 50)
-        ema200 = data_row.get("EMA200", cp)
-
-        volume = data_row.get("volume", 1)
-        avg_volume = data_row.get("avg_volume", 1)
-        vol_ratio = volume / avg_volume if avg_volume else 1
-
-        # =========================
-        # 🧠 MARKET REGIME
-        # =========================
-        if adx < 20:
-            return {"signal": "NO TRADE", "reason": "Ranging market"}
-
-        # =========================
-        # 📊 TREND FILTER
-        # =========================
-        is_long = cp > ema200
-        is_short = cp < ema200
-
-        if not (is_long or is_short):
-            return {"signal": "NO TRADE"}
-
-        # =========================
-        # 🔥 SMART MONEY
-        # =========================
-        spread = max(high - low, 1e-6)
-        body = abs(cp - open_p)
-        smart_money = (body / spread > 0.6) and (vol_ratio > 1.5)
-
-        # =========================
-        # 💣 LIQUIDITY SWEEP
-        # =========================
-        liquidity_sweep = (low < data_row.get("prev_low", low) and cp > open_p) or \
-                          (high > data_row.get("prev_high", high) and cp < open_p)
-
-        # =========================
-        # 📊 STRUCTURE (PIVOT)
-        # =========================
-        pivot = (high + low + cp) / 3
-        r1 = (2 * pivot) - low
-        s1 = (2 * pivot) - high
-
-        # =========================
-        # 🎯 ENTRY ZONE
-        # =========================
-        if is_long:
-            entry = cp - atr * 0.3
-            tp = r1
-            sl = cp - atr * 2
-        else:
-            entry = cp + atr * 0.3
-            tp = s1
-            sl = cp + atr * 2
-
-        # =========================
-        # ⚖️ RISK REWARD
-        # =========================
-        risk = abs(entry - sl)
-        reward = abs(tp - entry)
-        rr = reward / risk if risk else 0
-
-        if rr < 1.5:
-            return {"signal": "NO TRADE"}
-
-        # =========================
-        # 🧠 CONFLUENCE SCORE
-        # =========================
-        score = 0
-        if adx > 25: score += 1
-        if vol_ratio > 1.3: score += 1
-        if smart_money: score += 1
-        if liquidity_sweep: score += 1
-        if (is_long and rsi < 40) or (is_short and rsi > 60): score += 1
-
-        if score < 3:
-            return {"signal": "NO TRADE"}
-
-        return {
-            "signal": "LONG" if is_long else "SHORT",
-            "entry": entry,
-            "tp": tp,
-            "sl": sl,
-            "rr": rr,
-            "score": score,
-            "rsi": rsi,
-            "adx": adx,
-            "volume_ratio": vol_ratio
-        }
-
-    except Exception as e:
-        return {"error": str(e)}
         
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
@@ -734,38 +604,38 @@ if page == "Tools":
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-# -----------------------------
-# 2. COMPOUND CALCULATOR
-# -----------------------------
-with t_compound:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
+    # -----------------------------
+    # 2. COMPOUND CALCULATOR
+    # -----------------------------
+    with t_compound:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
-    s_bal = st.number_input("Starting Capital ($)", min_value=0.0, value=0.0, key="comp_s")
-    n_doubles = st.number_input("Times to Double", min_value=0, step=1, value=0, key="comp_n")
+        s_bal = st.number_input("Starting Capital ($)", min_value=0.0, value=0.0, key="comp_s")
+        n_doubles = st.number_input("Times to Double", min_value=0, step=1, value=0, key="comp_n")
 
-    if st.button("Enter"):
-        if s_bal <= 0 or n_doubles <= 0:
-            st.warning("Please enter valid values for both fields.")
-        else:
-            data = []
-            current = s_bal
+        if st.button("Enter", key="compound_btn"):
+            if s_bal <= 0 or n_doubles <= 0:
+                st.warning("Please enter valid values for both fields.")
+            else:
+                data = []
+                current = s_bal
 
-            for i in range(n_doubles + 1):
-                data.append({
-                    "Step": i,
-                    "Balance ($)": f"${current:,.2f}"
-                })
-                current *= 2
+                for i in range(n_doubles + 1):
+                    data.append({
+                        "Step": i,
+                        "Balance ($)": current
+                    })
+                    current *= 2
 
-            df = pd.DataFrame(data)
+                df = pd.DataFrame(data)
 
-            st.markdown("### Growth Table")
-            st.dataframe(df, use_container_width=True)
+                st.markdown("### Growth Table")
+                st.dataframe(df, use_container_width=True)
 
-            st.metric("Final Balance", f"${data[-1]['Balance ($)']}")
+                st.metric("Final Balance", f"${df.iloc[-1]['Balance ($)']:,.2f}")
 
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 3. DCA CALCULATOR
