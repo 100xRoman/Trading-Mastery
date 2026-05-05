@@ -736,7 +736,7 @@ if page == "Tools":
 
     # --- POSITION SIZER & RISK CALCULATOR ---
     with t_pl:
-    st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
