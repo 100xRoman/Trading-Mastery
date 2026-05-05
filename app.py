@@ -260,7 +260,6 @@ This means trading is not about being right — it’s about being **consistentl
     # 📊 MARKET CONDITIONS
     # =========================
     with b2:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.subheader("📊 Market Conditions")
 
         st.write("""
@@ -297,22 +296,16 @@ This is where most traders get trapped due to emotional decisions.
 
 """)
 
-        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
         st.write("""
 **Professional Rule:**  
 Identify the market condition first — then apply the strategy that fits it.  
 Not the other way around.
 """)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
 
     # =========================
     # ⚖️ RISK MANAGEMENT
     # =========================
     with b3:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.subheader("⚖️ Risk Management")
 
         st.write("""
@@ -335,14 +328,12 @@ Where you lock in gains.
 How much you risk compared to how much you aim to make.
 """)
 
-        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
         st.write("""
 **Example:**  
 Risk $100 to make $200 → 1:2 R:R  
 
 Even if you only win 50% of trades, you are still profitable.
 """)
-        st.markdown('</div>', unsafe_allow_html=True)
 
         st.write("""
 ### Why Most Traders Fail
@@ -356,14 +347,11 @@ Even if you only win 50% of trades, you are still profitable.
 - Consistency beats big wins  
 """)
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
 
     # =========================
     # 📈 LONG VS SHORT
     # =========================
     with b4:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.subheader("📈 Long vs Short")
 
         st.write("""
@@ -388,7 +376,6 @@ You enter a short position when you expect price to fall.
 - Profit from downward movement  
 """)
 
-        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
         st.write("""
 **Example:**  
 BTC at $80,000  
@@ -396,7 +383,6 @@ BTC at $80,000
 - Long → profit if it rises to $85,000  
 - Short → profit if it drops to $75,000  
 """)
-        st.markdown('</div>', unsafe_allow_html=True)
 
         st.write("""
 ### Key Takeaways
@@ -405,14 +391,11 @@ BTC at $80,000
 - Always trade what the market is doing, not what you think it should do  
 """)
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
 
     # =========================
     # 🧠 PSYCHOLOGY
     # =========================
     with b5:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.subheader("🧠 Trading Psychology")
 
         st.write("""
@@ -430,14 +413,12 @@ They lose because they cannot control their emotions.
 - Moving stop losses to avoid being wrong  
 """)
 
-        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
         st.write("""
 **Professional Mindset:**  
 Think in probabilities, not certainties.  
 
 Losses are part of the system — not something to avoid at all costs.
 """)
-        st.markdown('</div>', unsafe_allow_html=True)
 
         st.write("""
 ### What Separates Professionals
@@ -451,7 +432,6 @@ Losses are part of the system — not something to avoid at all costs.
 - Your edge only works if you follow it  
 """)
 
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Technical Analysis":
@@ -740,7 +720,6 @@ if page == "Charts":
     components.html(chart_html, height=620)
 
     # --- POSITION SIZER & RISK CALCULATOR ---
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">🧮 100x Position Sizer</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
@@ -815,7 +794,6 @@ if page == "Tools":
     # 1. TRADING JOURNAL
     # -----------------------------
     with t_journal:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">📝 Trade Log</p>', unsafe_allow_html=True)
 
         # Initialize session state
@@ -856,7 +834,6 @@ if page == "Tools":
     # 2. COMPOUND CALCULATOR
     # -----------------------------
     with t_compound:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
         s_bal = st.number_input("Starting Capital ($)", min_value=0.0, value=0.0, key="comp_s")
@@ -883,13 +860,10 @@ if page == "Tools":
 
                 st.metric("Final Balance", f"${df.iloc[-1]['Balance ($)']:,.2f}")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # -----------------------------
     # 3. DCA CALCULATOR
     # -----------------------------
     with t_dca:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🎯 DCA Average Entry</p>', unsafe_allow_html=True)
         col_d1, col_d2 = st.columns(2)
         p1 = col_d1.number_input("Price 1", value=60000.0, key="dca_p1")
@@ -899,48 +873,39 @@ if page == "Tools":
         if p1 > 0 and p2 > 0:
             avg = (a1 + a2) / ((a1/p1) + (a2/p2))
             st.metric("Weighted Average", f"${avg:,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 4. BREAKEVEN CALCULATOR
     # -----------------------------
     with t_be:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚖️ Breakeven Finder</p>', unsafe_allow_html=True)
         be_p = st.number_input("Entry Price", value=50000.0, key="be_p")
         be_f = st.number_input("Fee % (One-way)", value=0.06, format="%.3f", key="be_f")
         st.metric("Exit Price for $0 Loss", f"${be_p * (1 + (be_f/100)*2):,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 5. POSITION SIZE %
     # -----------------------------
     with t_pos:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">📏 Margin Converter</p>', unsafe_allow_html=True)
         w_bal = st.number_input("Wallet Balance ($)", value=1000.0, key="pos_w")
         r_pct = st.slider("Wallet % to Risk", 1, 100, 10, key="pos_r")
         l_used = st.number_input("Leverage (x)", value=10, key="pos_l")
         st.metric("Bybit Margin Required", f"${(w_bal * (r_pct/100)) / l_used:,.2f}")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 6. LEVERAGE STRESS TEST
     # -----------------------------
     with t_stress:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚠️ Leverage Stress Test</p>', unsafe_allow_html=True)
         st_p = st.number_input("Entry Price", value=50000.0, key="stress_p")
         st_l = st.slider("Leverage", 1, 100, 20, key="stress_l")
         st.error(f"Liquidation Point: {100/st_l:.2f}% price drop.")
         st.warning(f"A 1% move results in a {1 * st_l}% P&L change.")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------
     # 7. MARKET SENTIMENT
     # -----------------------------
     with t_sentiment:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.image("https://alternative.me/crypto/fear-and-greed-index.png", caption="Fear & Greed Index")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+    
