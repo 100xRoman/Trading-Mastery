@@ -204,8 +204,261 @@ if page == "Indicators":
 
         else:
             st.warning("Indicator not found. Make sure you type it exactly (e.g. RSI).")
-    
-# --- PAGE 1: TECHNICAL ANALYSIS ---
+
+if page == "Basics":
+    st.markdown('<p class="pillar-title">📘 Trading Basics</p>', unsafe_allow_html=True)
+    st.info("Build a strong foundation before moving into advanced strategies and smart money concepts.")
+
+    b1, b2, b3, b4, b5 = st.tabs([
+        "💰 What is Trading",
+        "📊 Market Conditions",
+        "⚖️ Risk Management",
+        "📈 Long vs Short",
+        "🧠 Psychology"
+    ])
+
+    # =========================
+    # 💰 WHAT IS TRADING
+    # =========================
+    with b1:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("💰 What is Trading?")
+
+        st.write("""
+Trading is the process of buying and selling assets to profit from changes in price.
+
+At a surface level, it looks simple — buy low, sell high. But in reality, trading is about understanding **how and why price moves**, and positioning yourself ahead of those movements.
+
+Unlike long-term investing, trading focuses on **short- to medium-term opportunities**, using price action, liquidity, and market behavior to make decisions.
+""")
+
+        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
+        st.write("""
+**Key Shift in Thinking:**  
+You are not trading coins, stocks, or assets — you are trading **price movement and behavior**.
+""")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.write("""
+### How Traders Make Money
+There are only two ways to profit in any market:
+
+- Buying an asset and selling it at a higher price  
+- Selling an asset and buying it back at a lower price  
+
+Everything else — indicators, strategies, signals — is just a tool to help you do this more effectively.
+
+### The Reality of Trading
+Markets are driven by **liquidity, emotions, and large players**, not by opinions or guesses.  
+This means trading is not about being right — it’s about being **consistently better than the average participant**.
+
+### Key Takeaways
+- Trading is probability-based, not guaranteed  
+- You are competing against other traders  
+- Understanding price behavior is more important than predictions  
+""")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    # =========================
+    # 📊 MARKET CONDITIONS
+    # =========================
+    with b2:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("📊 Market Conditions")
+
+        st.write("""
+Before entering any trade, you need to understand **what type of market you are in**.
+
+Most beginners lose money because they apply the same strategy in every condition — but markets behave very differently depending on structure and volatility.
+""")
+
+        st.write("""
+### 📈 Trending Market
+A trending market moves clearly in one direction:
+- Uptrend → higher highs and higher lows  
+- Downtrend → lower highs and lower lows  
+
+These conditions favor **trend-following strategies**, where you trade in the direction of momentum.
+
+### 🔄 Ranging Market
+A ranging market moves sideways between support and resistance levels.
+
+Price repeatedly:
+- Bounces from the bottom (support)
+- Rejects from the top (resistance)
+
+This favors **buy low / sell high** strategies instead of chasing breakouts.
+
+### ⚡ Volatile Market
+Volatility increases during news, major events, or liquidity grabs.
+
+- Fast, aggressive moves  
+- Unpredictable spikes and wicks  
+- Higher risk but also higher opportunity  
+
+This is where most traders get trapped due to emotional decisions.
+
+""")
+
+        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
+        st.write("""
+**Professional Rule:**  
+Identify the market condition first — then apply the strategy that fits it.  
+Not the other way around.
+""")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    # =========================
+    # ⚖️ RISK MANAGEMENT
+    # =========================
+    with b3:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("⚖️ Risk Management")
+
+        st.write("""
+Risk management is the single most important skill in trading.
+
+You can have a great strategy and still lose everything if your risk is not controlled.  
+Professional traders focus on **protecting capital first**, and profits come as a result of consistency.
+""")
+
+        st.write("""
+### Core Concepts
+
+**Stop Loss (SL):**  
+Your predefined exit if the trade goes against you.
+
+**Take Profit (TP):**  
+Where you lock in gains.
+
+**Risk-to-Reward Ratio (R:R):**  
+How much you risk compared to how much you aim to make.
+""")
+
+        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
+        st.write("""
+**Example:**  
+Risk $100 to make $200 → 1:2 R:R  
+
+Even if you only win 50% of trades, you are still profitable.
+""")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.write("""
+### Why Most Traders Fail
+- Risking too much per trade  
+- Not using stop losses  
+- Letting emotions override rules  
+
+### Key Takeaways
+- Never risk more than 1–2% per trade  
+- Survival is the goal — profits come after  
+- Consistency beats big wins  
+""")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    # =========================
+    # 📈 LONG VS SHORT
+    # =========================
+    with b4:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("📈 Long vs Short")
+
+        st.write("""
+One of the biggest advantages in trading is that you can profit in **both directions**.
+
+You are not limited to markets going up — you can also take advantage of falling prices.
+""")
+
+        st.write("""
+### 📈 Long (Buy)
+You enter a long position when you expect price to rise.
+
+- Buy at a lower price  
+- Sell at a higher price  
+- Profit from upward movement  
+
+### 📉 Short (Sell)
+You enter a short position when you expect price to fall.
+
+- Sell at a higher price  
+- Buy back at a lower price  
+- Profit from downward movement  
+""")
+
+        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
+        st.write("""
+**Example:**  
+BTC at $80,000  
+
+- Long → profit if it rises to $85,000  
+- Short → profit if it drops to $75,000  
+""")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.write("""
+### Key Takeaways
+- You don’t need a bullish market to make money  
+- Direction matters more than bias  
+- Always trade what the market is doing, not what you think it should do  
+""")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+    # =========================
+    # 🧠 PSYCHOLOGY
+    # =========================
+    with b5:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("🧠 Trading Psychology")
+
+        st.write("""
+Trading is not just technical — it is psychological.
+
+Most traders don’t lose because of bad strategies.  
+They lose because they cannot control their emotions.
+""")
+
+        st.write("""
+### Common Emotional Mistakes
+- Overtrading after wins  
+- Revenge trading after losses  
+- Fear of missing out (FOMO)  
+- Moving stop losses to avoid being wrong  
+""")
+
+        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
+        st.write("""
+**Professional Mindset:**  
+Think in probabilities, not certainties.  
+
+Losses are part of the system — not something to avoid at all costs.
+""")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.write("""
+### What Separates Professionals
+- Discipline over emotion  
+- Consistency over excitement  
+- Process over outcome  
+
+### Key Takeaways
+- Psychology is often more important than strategy  
+- One mistake can wipe multiple good trades  
+- Your edge only works if you follow it  
+""")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Technical Analysis":
     st.header("⚙ Technical Analysis")
 
