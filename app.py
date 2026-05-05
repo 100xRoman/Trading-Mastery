@@ -167,7 +167,7 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Crypto Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("MENU", ["Technical Analysis", "Indicators", "Charts", "Tools"])
+    page = st.radio("MENU", ["Basics", "Technical Analysis", "Indicators", "Charts", "Tools"])
     st.divider()
     st.caption("℗Romanstrades")
 
