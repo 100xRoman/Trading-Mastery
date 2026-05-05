@@ -63,11 +63,6 @@ if "active_video" not in st.session_state:
 def load_video(url):
     st.session_state.active_video = url
 
-# --- PAGE 1: MASTERY (LEARNING) ---
-if page == "Mastery (Learning)":
-    st.title("🏛️ Indicators")
-    st.info("Advanced Technical Analysis & Market Psychology Protocol")
-
 # --- PAGE: INDICATORS ---
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
@@ -76,10 +71,6 @@ search = st.text_input(
     "Search for an indicator...",
     key="indicator_search"
 )
-
-selected = None
-
-search = st.text_input("Search for an indicator...")
 
 selected = None
 
@@ -104,6 +95,11 @@ if selected:
     st.write(data["desc"])
     st.video(data["video"])
     st.markdown('</div>', unsafe_allow_html=True)
+
+# --- PAGE 1: MASTERY (LEARNING) ---
+if page == "Mastery (Learning)":
+    st.title("🏛️ Indicators")
+    st.info("Advanced Technical Analysis & Market Psychology Protocol")
     
 # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Mastery (Learning)":
