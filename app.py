@@ -717,12 +717,12 @@ if page == "Charts":
     </script>
     """
     components.html(chart_html, height=620)
-        
+
 # --- PAGE 3: TOOLS ---
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
-    
-    # Create tabs
+
+    # Tabs
     t_pl, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
         "💰 P&L Calculator",
         "📊 Journal",
@@ -738,6 +738,7 @@ if page == "Tools":
     # 💰 P&L CALCULATOR
     # =============================
     with t_pl:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
@@ -745,12 +746,14 @@ if page == "Tools":
         with col1:
             coin = st.text_input("Coin Symbol", placeholder="e.g., BTC").upper()
             capital = st.number_input("Capital (USD)", min_value=0.0)
-            leverage = st.number_input("Leverage", min_value=1.0, value=1.0, step=1.0)
+            leverage = st.number_input("Leverage", min_value=1.0, value=1.0)
 
         with col2:
             entry = st.number_input("Entry Price", min_value=0.0, format="%.4f")
             sl = st.number_input("Stop Loss Price", min_value=0.0, format="%.4f")
             tp = st.number_input("Take Profit Price", min_value=0.0, format="%.4f")
+
+        st.markdown("###")
 
         if st.button("Calculate", use_container_width=True, key="pnl_btn"):
             if not coin or capital <= 0 or entry <= 0:
@@ -783,118 +786,142 @@ if page == "Tools":
                     else:
                         st.success("Good R:R")
 
-# -----------------------------
-# 📝 TRADING JOURNAL
-# -----------------------------
-with t_journal:
-    st.markdown('<p class="indicator-title">📝 Trade Log</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    if 'history' not in st.session_state:
-        st.session_state.history = []
+    # =============================
+    # 📊 JOURNAL
+    # =============================
+    with t_journal:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">📊 Trade Journal</p>', unsafe_allow_html=True)
 
-    with st.form("log_trade"):
-        c1, c2, c3 = st.columns(3)
+        if 'history' not in st.session_state:
+            st.session_state.history = []
 
-        t_type = c1.selectbox("Type", ["LONG", "SHORT"])
-        t_cap = c1.number_input("Capital ($)", value=100.0)
+        with st.form("log_trade"):
+            c1, c2, c3 = st.columns(3)
 
-        t_lev = c2.number_input("Leverage", value=10)
-        p_mode = c2.radio("Input", ["%", "$"])
+            t_type = c1.selectbox("Type", ["LONG", "SHORT"])
+            t_cap = c1.number_input("Capital ($)", value=100.0)
 
-        t_val = c3.number_input("P&L Value", value=0.0)
+            t_lev = c2.number_input("Leverage", value=10)
+            p_mode = c2.radio("Input", ["%", "$"])
 
-        if st.form_submit_button("Log Trade"):
-            usd = t_val if p_mode == "$" else (t_val / 100) * t_cap
-            pct = t_val if p_mode == "%" else (t_val / t_cap) * 100
+            t_val = c3.number_input("P&L Value", value=0.0)
 
-            st.session_state.history.append({
-                "Type": t_type,
-                "Capital": t_cap,
-                "P&L $": usd,
-                "P&L %": pct
-            })
+            if st.form_submit_button("Log Trade"):
+                usd = t_val if p_mode == "$" else (t_val / 100) * t_cap
+                pct = t_val if p_mode == "%" else (t_val / t_cap) * 100
 
-    if st.session_state.history:
-        st.table(pd.DataFrame(st.session_state.history))
+                st.session_state.history.append({
+                    "Type": t_type,
+                    "Capital": t_cap,
+                    "P&L $": usd,
+                    "P&L %": pct
+                })
 
-    if st.button("Clear Journal"):
-        st.session_state.history = []
-        st.rerun()
+        st.markdown("###")
 
-# -----------------------------
-# 🚀 COMPOUND
-# -----------------------------
-with t_compound:
-    st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
+        if st.session_state.history:
+            st.table(pd.DataFrame(st.session_state.history))
 
-    start = st.number_input("Starting Capital ($)", value=0.0)
-    doubles = st.number_input("Times to Double", value=0)
+        if st.button("Clear Journal"):
+            st.session_state.history = []
+            st.rerun()
 
-    if st.button("Calculate", key="compound_btn"):
-        if start > 0 and doubles > 0:
-            val = start
-            data = []
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            for i in range(doubles + 1):
-                data.append({"Step": i, "Balance": val})
-                val *= 2
+    # =============================
+    # 🚀 COMPOUND
+    # =============================
+    with t_compound:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
-            st.dataframe(pd.DataFrame(data), use_container_width=True)
-            st.metric("Final Balance", f"${val/2:,.2f}")
-        else:
-            st.warning("Enter valid values.")
+        start = st.number_input("Starting Capital ($)", value=0.0)
+        doubles = st.number_input("Times to Double", value=0)
 
-# -----------------------------
-# 🎯 DCA
-# -----------------------------
-with t_dca:
-    st.markdown('<p class="indicator-title">🎯 DCA Calculator</p>', unsafe_allow_html=True)
+        if st.button("Calculate", key="compound_btn"):
+            if start > 0 and doubles > 0:
+                val = start
+                data = []
 
-    p1 = st.number_input("Price 1", value=60000.0)
-    a1 = st.number_input("Amount 1", value=500.0)
-    p2 = st.number_input("Price 2", value=55000.0)
-    a2 = st.number_input("Amount 2", value=500.0)
+                for i in range(doubles + 1):
+                    data.append({"Step": i, "Balance": val})
+                    val *= 2
 
-    if p1 > 0 and p2 > 0:
-        avg = (a1 + a2) / ((a1 / p1) + (a2 / p2))
-        st.metric("Average Entry", f"${avg:,.2f}")
+                st.dataframe(pd.DataFrame(data), use_container_width=True)
+                st.metric("Final Balance", f"${val/2:,.2f}")
+            else:
+                st.warning("Enter valid values.")
 
-# -----------------------------
-# ⚖️ BREAKEVEN
-# -----------------------------
-with t_be:
-    st.markdown('<p class="indicator-title">⚖️ Breakeven</p>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    price = st.number_input("Entry Price", value=50000.0)
-    fee = st.number_input("Fee %", value=0.06)
+    # =============================
+    # 🎯 DCA
+    # =============================
+    with t_dca:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">🎯 DCA Calculator</p>', unsafe_allow_html=True)
 
-    st.metric("Breakeven Price", f"${price * (1 + (fee/100)*2):,.2f}")
+        p1 = st.number_input("Price 1", value=60000.0)
+        a1 = st.number_input("Amount 1", value=500.0)
+        p2 = st.number_input("Price 2", value=55000.0)
+        a2 = st.number_input("Amount 2", value=500.0)
 
-# -----------------------------
-# 📏 POSITION SIZE
-# -----------------------------
-with t_pos:
-    st.markdown('<p class="indicator-title">📏 Position Size</p>', unsafe_allow_html=True)
+        if p1 > 0 and p2 > 0:
+            avg = (a1 + a2) / ((a1 / p1) + (a2 / p2))
+            st.metric("Average Entry", f"${avg:,.2f}")
 
-    bal = st.number_input("Wallet ($)", value=1000.0)
-    risk = st.slider("Risk %", 1, 100, 10)
-    lev = st.number_input("Leverage", value=10)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.metric("Margin Used", f"${(bal * (risk/100)) / lev:,.2f}")
+    # =============================
+    # ⚖️ BREAKEVEN
+    # =============================
+    with t_be:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">⚖️ Breakeven</p>', unsafe_allow_html=True)
 
-# -----------------------------
-# ⚠️ STRESS TEST
-# -----------------------------
-with t_stress:
-    st.markdown('<p class="indicator-title">⚠️ Stress Test</p>', unsafe_allow_html=True)
+        price = st.number_input("Entry Price", value=50000.0)
+        fee = st.number_input("Fee %", value=0.06)
 
-    lev = st.slider("Leverage", 1, 100, 20)
+        st.metric("Breakeven Price", f"${price * (1 + (fee/100)*2):,.2f}")
 
-    st.error(f"Liquidation: {100/lev:.2f}% move")
-    st.warning(f"1% move = {lev}% P&L")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-# -----------------------------
-# 🧠 SENTIMENT
-# -----------------------------
-with t_sentiment:
-    st.image("https://alternative.me/crypto/fear-and-greed-index.png")
+    # =============================
+    # 📏 POSITION SIZE
+    # =============================
+    with t_pos:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">📏 Position Size</p>', unsafe_allow_html=True)
+
+        bal = st.number_input("Wallet ($)", value=1000.0)
+        risk = st.slider("Risk %", 1, 100, 10)
+        lev = st.number_input("Leverage", value=10)
+
+        st.metric("Margin Used", f"${(bal * (risk/100)) / lev:,.2f}")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # =============================
+    # ⚠️ STRESS TEST
+    # =============================
+    with t_stress:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">⚠️ Stress Test</p>', unsafe_allow_html=True)
+
+        lev = st.slider("Leverage", 1, 100, 20)
+
+        st.error(f"Liquidation: {100/lev:.2f}% move")
+        st.warning(f"1% move = {lev}% P&L")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # =============================
+    # 🧠 SENTIMENT
+    # =============================
+    with t_sentiment:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.image("https://alternative.me/crypto/fear-and-greed-index.png")
+        st.markdown('</div>', unsafe_allow_html=True)
