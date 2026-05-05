@@ -72,23 +72,26 @@ if page == "Mastery (Learning)":
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
-    # Search bar
-    search = st.text_input("Search for an indicator...")
+search = st.text_input("Search for an indicator...")
 
-    # Filter results
-    filtered = [key for key in indicators.keys() if search.lower() in key.lower()] if search else list(indicators.keys())
+filtered = [
+    key for key in indicators.keys()
+    if search.lower() in key.lower()
+] if search else list(indicators.keys())
 
-    # Dropdown
-    selected = st.selectbox("Select Indicator", filtered)
+# Show results
+for key in filtered:
+    if st.button(key, use_container_width=True):
+        st.session_state.selected_indicator = key
 
-    if selected:
-        data = indicators[selected]
+if "selected_indicator" in st.session_state:
+    data = indicators[st.session_state.selected_indicator]
 
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
-        st.write(data["desc"])
-        st.video(data["video"])
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
+    st.write(data["desc"])
+    st.video(data["video"])
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Mastery (Learning)":
