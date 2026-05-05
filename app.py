@@ -8,7 +8,6 @@ import numpy as np
 import streamlit.components.v1 as components
 
 indicators = {
-indicators = {
     "RSI": {
         "title": "⚡ RSI (Relative Strength Index)",
         "desc": """The Relative Strength Index (RSI) measures momentum on a scale of 0–100...""",
