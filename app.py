@@ -207,7 +207,6 @@ if page == "Indicators":
     
 # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Technical Analysis":
-    st.divider()
     st.header("⚙ Technical Analysis")
 
     # Define tabs here
@@ -569,7 +568,7 @@ if page == "Tools":
     # -----------------------------
     with t_journal:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown('<p class="indicator-title">📝 Institutional Trade Log</p>', unsafe_allow_html=True)
+        st.markdown('<p class="indicator-title">📝 Trade Log</p>', unsafe_allow_html=True)
 
         # Initialize session state
         if 'history' not in st.session_state:
