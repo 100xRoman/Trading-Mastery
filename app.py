@@ -8,22 +8,160 @@ import numpy as np
 import streamlit.components.v1 as components
 
 indicators = {
-    "RSI": {
-        "title": "⚡ RSI: Momentum & Trend Exhaustion",
-        "desc": "The Relative Strength Index (RSI) is a momentum oscillator...",
-        "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
-    },
-    "MACD": {
-        "title": "📊 MACD: The Momentum Cycle Engine",
-        "desc": "The MACD is a trend-following momentum indicator...",
-        "video": "https://www.youtube.com/watch?v=tSr6UorS9Ro"
-    },
-    "Fibonacci": {
-        "title": "📐 Fibonacci: The Golden Ratio Protocol",
-        "desc": "Fibonacci retracement levels are key reaction zones...",
-        "video": "https://www.youtube.com/watch?v=oVMeymdZwWI"
-    }
-}
+# --- 1. RSI (RELATIVE STRENGTH INDEX) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">⚡ RSI: Momentum & Trend Exhaustion</p>', unsafe_allow_html=True)
+    st.write("""
+    The Relative Strength Index (RSI) is a sophisticated momentum oscillator that quantifies the velocity and magnitude of directional price movements. Operating on a scale from 0 to 100, it evaluates the internal strength of an asset by comparing the magnitude of recent gains to recent losses. Beyond the basic "overbought" (70) and "oversold" (30) levels, the RSI is a window into market psychology. When the RSI remains sustained in the upper or lower quartiles, it indicates a powerful trending market where "overbought" actually means "extremely strong."
+    
+    **How to Trade It:**
+    * **Hidden Bullish Divergence:** This occurs when price makes a Higher Low (HL) but the RSI makes a Lower Low (LL). This signals that the bears tried to push the momentum down, but the bulls maintained price structure—this is a high-confidence signal for trend continuation.
+    * **The 50-Level Pivot:** Use the 50 level as a macro bias filter. If the RSI is oscillating between 40 and 80, you are in a Bull Market. If it struggles to break 60 and drops to 20, you are in a Bear Market.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=z3fbVK5e5Io")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 2. MACD (MOVING AVERAGE CONVERGENCE DIVERGENCE) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📊 MACD: The Momentum Cycle Engine</p>', unsafe_allow_html=True)
+    st.write("""
+    The MACD is a trend-following momentum indicator that reveals the shifting relationship between two Exponential Moving Averages (EMA). It is comprised of the MACD Line (the difference between the 12 and 26 EMAs), the Signal Line (a 9-period EMA of the MACD line), and the Histogram. The MACD is unique because it functions as both a trend indicator and a momentum oscillator. It visualizes the "energy" behind a move; when the MACD lines spread apart, momentum is accelerating. When they converge, a reversal is likely.
+    
+    **How to Trade It:**
+    * **Zero-Line Rejection:** In a strong uptrend, look for the MACD lines to pull back toward the zero line and "bounce" without crossing below it. This confirms a reset in momentum and a new entry point.
+    * **Histogram Squeeze:** When the Histogram bars begin to shrink while the price is still rising, it indicates "momentum decay." This is your early warning to tighten stop losses before a pullback occurs.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=tSr6UorS9Ro")    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 3. FIBONACCI RETRACEMENT ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📐 Fibonacci: The Golden Ratio Protocol</p>', unsafe_allow_html=True)
+    st.write("""
+    Fibonacci Retracement levels are not just lines; they are mathematical representations of human behavior and nature's "Golden Ratio" (1.618). In trading, these levels identify high-probability zones where price discovery is likely to pause or reverse. Because so many institutional algorithms and professional traders use these levels, they become self-fulfilling prophecies. The levels act as "invisible" support and resistance that standard price action might miss.
+    
+    **How to Trade It:**
+    * **The Golden Pocket (0.618 - 0.66):** This is the high-value entry zone. When price retraces to this level during a trend, it represents the "deepest" discount before the original trend resumes. 
+    * **Confluence Trading:** Never trade a Fib level alone. Look for a Fib level that aligns with a previous Support/Resistance zone or a 200 EMA to increase your win rate significantly.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=oVMeymdZwWI")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 4. OBV (ON-BALANCE VOLUME) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📈 OBV: Tracking the Smart Money</p>', unsafe_allow_html=True)
+    st.write("""
+    On-Balance Volume (OBV) is a cumulative indicator that relates volume to price change. It operates on the theory that "Volume is the fuel, and Price is the car." OBV tracks the total flow of volume into and out of an asset. When OBV rises, it means aggressive buyers are entering (Accumulation). When it falls, aggressive sellers are exiting (Distribution). It is one of the best tools for spotting "Smart Money" movements before they are reflected in the price action.
+    
+    **How to Trade It:**
+    * **The Breakout Confirmation:** If price breaks out of a range but OBV remains flat, the move is likely a "Bull Trap." You want to see OBV making new highs *before* the price does to confirm a genuine breakout.
+    * **Trend Validation:** In a healthy uptrend, OBV should be making higher highs. If OBV starts making lower highs while price is still rising, the "fuel" is running out, and a crash is imminent.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=7GsKu4DVqbQ&vl=en")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 5. ICHIMOKU CLOUD ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">☁️ Ichimoku: The Equilibrium Visualizer</p>', unsafe_allow_html=True)
+    st.write("""
+    The Ichimoku Kinko Hyo (meaning "One Glance Equilibrium Chart") is the most comprehensive trend-following system in technical analysis. It defines support and resistance, identifies trend direction, gauges momentum, and provides trading signals—all in one visual. The "Kumo Cloud" is the heart of the system, acting as a dynamic "No-Trade Zone" or a launchpad for major trends. It is projected 26 periods into the future, giving traders a unique look at where future support might reside.
+    
+    **How to Trade It:**
+    * **Kumo Breakout:** The most powerful signal occurs when a candle closes *above* the cloud. This signifies that the asset has broken out of its equilibrium and is entering a new trending phase.
+    * **The TK Cross:** When the Tenkan-sen (Conversion Line) crosses the Kijun-sen (Base Line), it acts like a MACD cross but within the context of the cloud's support/resistance.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=Ow0U7o5c0EM")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 6. CCI (COMMODITY CHANNEL INDEX) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🔄 CCI: Identifying Market Cycles</p>', unsafe_allow_html=True)
+    st.write("""
+    The Commodity Channel Index (CCI) is a versatile oscillator used to identify cyclical turns in an asset. It measures the current price's deviation from its average price over a set period. High CCI values indicate the price is significantly above its average (strength), while low values indicate it is far below (weakness). Because it is an unbounded oscillator, it is excellent at identifying the *beginning* of a massive new trend.
+    
+    **How to Use It:**
+    * **The +100 Breakout:** When CCI crosses above +100, the asset is entering a strong bullish trend. Many traders use this as a "Momentum Buy" signal.
+    * **Mean Reversion:** If CCI reaches extremes like +300 or -300, the price is "overextended" and is highly likely to snap back to its moving average.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=9babULjrPLE")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 7. STOCHASTIC OSCILLATOR ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🎢 Stochastic: Precision Timing</p>', unsafe_allow_html=True)
+    st.write("""
+    The Stochastic Oscillator follows the speed or momentum of price. Unlike the RSI, which measures price strength, Stochastic is based on the observation that in uptrends, prices tend to close near their high, and in downtrends, they close near their low. It is incredibly sensitive and is often used to "time" an entry once a trend has already been identified by other indicators.
+    
+    **How to Use It:**
+    * **The Crossover:** Focus on the %K (fast) and %D (slow) lines. A cross of the %K above the %D in the oversold region (below 20) is a classic "Buy" trigger.
+    * **Bullish Divergence:** If price makes a new low but Stochastic makes a higher low, the selling pressure is exhausted, and a "spring" move upward is likely.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=WGLIiLU-CWE")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 8. ATR (AVERAGE TRUE RANGE) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">📏 ATR: Volatility & Risk Engineering</p>', unsafe_allow_html=True)
+    st.write("""
+    The Average True Range (ATR) is the ultimate tool for risk management. It does not predict price direction; instead, it measures the "volatility" or the average "heartbeat" of the market. It tells you how much an asset moves on average in a given timeframe. Professional traders use ATR to ensure their stop losses are wide enough to survive market "noise" but tight enough to manage risk.
+    
+    **How to Use It:**
+    * **The Volatility Stop:** A professional standard is to set your Stop Loss at "1.5x or 2x ATR" away from your entry. This ensures that a random price wick won't knock you out of a good trade.
+    * **Position Sizing:** When ATR is high, you should reduce your position size because the risk per trade is higher. When ATR is low, you can safely increase your size.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=NEf62LQqnQs")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 9. MOVING AVERAGES (EMA/SMA) ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">〰️ Moving Averages: The Institutional Bias</p>', unsafe_allow_html=True)
+    st.write("""
+    Moving Averages (MAs) are the foundation of trend analysis. They smooth out price data to reveal the underlying direction of the market. The Exponential Moving Average (EMA) places more weight on recent price data, making it more responsive to new information. In the institutional world, the 200-day EMA is the most important line on the chart; it represents the long-term health of an asset.
+    
+    **How to Use It:**
+    * **The Golden Cross:** When the 50 EMA crosses above the 200 EMA, it signals a long-term macro bull trend.
+    * **Mean Reversion:** Price acts like a rubber band with MAs. If the price gets too far away from the 20 EMA, it will eventually "snap back" to it. Use these pullbacks as high-probability entry points.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=ADRTal_rWFk")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 10. PARABOLIC SAR ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🎯 Parabolic SAR: Precision Trend Catching</p>', unsafe_allow_html=True)
+    st.write("""
+    The Parabolic SAR (Stop and Reverse) is designed to identify the exact moment a trend begins and ends. It appears as a series of dots either above or below the price candles. When the dots are below, the trend is up; when they are above, the trend is down. The SAR "accelerates" over time, meaning it gets closer to the price as the trend gets older, forcing you to lock in profits.
+    
+    **How to Use It:**
+    * **The Trend Flip:** When the dots "flip" from top to bottom, it is your signal to enter a Long position.
+    * **Trailing Stops:** The Parabolic SAR is the best tool for trailing your stop loss. As each new dot appears, move your stop loss to that exact price level. This ensures you never let a winning trade turn into a loser.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=sgH7zdxwwzc")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 11. KELTNER CHANNELS ---
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<p class="indicator-title">🏎️ Keltner Channels: The Volatility Envelope</p>', unsafe_allow_html=True)
+    st.write("""
+    Keltner Channels are volatility-based bands that are placed around a central EMA. Unlike Bollinger Bands, which use standard deviation and "bulge" aggressively, Keltner Channels use ATR (Average True Range). This makes them much more stable and useful for identifying strong trending markets. They act like a "highway" for the price; as long as the price stays in the upper half, the momentum is strong.
+    
+    **How to Use It:**
+    * **The Keltner Squeeze:** When price "hugs" the upper channel without breaking back toward the middle, it indicates an extremely strong trend (momentum walk).
+    * **The Reversal Signal:** If price closes *outside* the upper channel and then immediately closes back *inside*, it often signals a "buying climax" and an upcoming reversal.
+    """)
+    
+    st.video("https://www.youtube.com/watch?v=kduJOzcMkpI")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
