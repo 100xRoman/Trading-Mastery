@@ -220,7 +220,6 @@ if page == "Basics":
     # 💰 WHAT IS TRADING
     # =========================
     with b1:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.subheader("💰 What is Trading?")
 
         st.write("""
@@ -718,14 +717,31 @@ if page == "Charts":
     </script>
     """
     components.html(chart_html, height=620)
+        
+# --- PAGE 3: TOOLS ---
+if page == "Tools":
+    st.title("⚒️ Professional Trading Tools")
+    
+    # Create tabs
+    t_p&l, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
+        "📊 Journal",
+        "📈 Compound",
+        "🎯 DCA",
+        "⚖️ Breakeven",
+        "📏 Position %",
+        "⚠️ Stress Test",
+        "🧠 Sentiment",
+        "💰 P&L Calculator"
+    ])
 
     # --- POSITION SIZER & RISK CALCULATOR ---
-    st.markdown('<p class="indicator-title">🧮 100x Position Sizer</p>', unsafe_allow_html=True)
+        with t_journal:
+    st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
-        coin = st.text_input("Coin Symbol", placeholder="e.g., XRP").upper()
+        coin = st.text_input("Coin Symbol", placeholder="e.g., BTC").upper()
         capital = st.number_input("Capital (USD)", min_value=0.0, help="Your balance before leverage")
         leverage = st.number_input("Leverage", min_value=1.0, value=1.0, step=1.0)
         
@@ -773,23 +789,7 @@ if page == "Charts":
                     st.warning("⚠️ Low Risk:Reward ratio. Ensure this aligns with your Pillars.")
                 else:
                     st.success("✅ High R:R trade detected.")
-    st.markdown('</div>', unsafe_allow_html=True)
-        
-# --- PAGE 3: TOOLS ---
-if page == "Tools":
-    st.title("⚒️ Professional Trading Tools")
-    
-    # Create tabs
-    t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
-        "📊 Journal",
-        "📈 Compound",
-        "🎯 DCA",
-        "⚖️ Breakeven",
-        "📏 Position %",
-        "⚠️ Stress Test",
-        "🧠 Sentiment"
-    ])
-
+                    
     # -----------------------------
     # 1. TRADING JOURNAL
     # -----------------------------
