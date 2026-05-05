@@ -206,9 +206,8 @@ if page == "Indicators":
             st.warning("Indicator not found. Make sure you type it exactly (e.g. RSI).")
 
 if page == "Basics":
-    st.markdown('<p class="pillar-title">📘 Trading Basics</p>', unsafe_allow_html=True)
-    st.info("Build a strong foundation before moving into advanced strategies and smart money concepts.")
-
+    st.title("🏫 Basics")
+    
     b1, b2, b3, b4, b5 = st.tabs([
         "💰 What is Trading",
         "📊 Market Conditions",
@@ -232,13 +231,11 @@ At a surface level, it looks simple — buy low, sell high. But in reality, trad
 Unlike long-term investing, trading focuses on **short- to medium-term opportunities**, using price action, liquidity, and market behavior to make decisions.
 """)
 
-        st.markdown('<div class="strategy-box">', unsafe_allow_html=True)
         st.write("""
 **Key Shift in Thinking:**  
 You are not trading coins, stocks, or assets — you are trading **price movement and behavior**.
 """)
-        st.markdown('</div>', unsafe_allow_html=True)
-
+        
         st.write("""
 ### How Traders Make Money
 There are only two ways to profit in any market:
@@ -257,8 +254,6 @@ This means trading is not about being right — it’s about being **consistentl
 - You are competing against other traders  
 - Understanding price behavior is more important than predictions  
 """)
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
     # =========================
