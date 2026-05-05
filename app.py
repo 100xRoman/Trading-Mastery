@@ -69,41 +69,27 @@ if page == "Indicators":
 
 search = st.text_input("Search for an indicator...", key="indicator_search")
 
-# Detect if search changed
-if "last_search" not in st.session_state:
-    st.session_state.last_search = ""
+search_clean = search.strip().lower()
 
-if search != st.session_state.last_search:
-    st.session_state.selected_indicator = None
-    st.session_state.last_search = search
-
-selected = None
-
-# Show dropdown ONLY when typing and nothing selected yet
-if search and not st.session_state.get("selected_indicator"):
-    search_clean = search.strip().lower()
-
+if search_clean:
+    # Match ANYTHING that contains the letters
     filtered = [
         key for key in indicators.keys()
-        if all(char in key.lower() for char in search_clean)
+        if search_clean in key.lower()
     ]
 
     if filtered:
-        selected = st.selectbox(
-            "",
-            filtered,
-            key="indicator_dropdown",
-            label_visibility="collapsed"
-        )
+        st.markdown("### Results")
+
+        # Show ALL matches
+        for key in filtered:
+            if st.button(key, key=f"btn_{key}", use_container_width=True):
+                st.session_state.selected_indicator = key
     else:
         st.caption("No matching indicators")
 
-# Save selection
-if selected:
-    st.session_state.selected_indicator = selected
-
-# Show result
-if st.session_state.get("selected_indicator"):
+# Show selected indicator
+if "selected_indicator" in st.session_state:
     data = indicators[st.session_state.selected_indicator]
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -111,7 +97,7 @@ if st.session_state.get("selected_indicator"):
     st.write(data["desc"])
     st.video(data["video"])
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
     st.title("🏛️ Indicators")
