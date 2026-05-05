@@ -162,6 +162,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=kduJOzcMkpI")
     st.markdown('</div>', unsafe_allow_html=True)
 
+}
+
 
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
