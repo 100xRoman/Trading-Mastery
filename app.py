@@ -167,7 +167,7 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Crypto Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("MENU", ["Mastery (Learning)", "Indicators", "Charts", "Tools"])
+    page = st.radio("MENU", ["Technical Analysis", "Indicators", "Charts", "Tools"])
     st.divider()
     st.caption("℗Romanstrades")
 
@@ -181,7 +181,7 @@ def load_video(url):
 
 # --- PAGE: INDICATORS ---
 if page == "Indicators":
-    st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
+    st.title("🧭 Indicators")
 
     # --- Search (exact match only) ---
     search = st.text_input(
@@ -205,15 +205,10 @@ if page == "Indicators":
         else:
             st.warning("Indicator not found. Make sure you type it exactly (e.g. RSI).")
     
-# --- PAGE 1: MASTERY (LEARNING) ---
-if page == "Mastery (Learning)":
-    st.title("🏛️ Indicators")
-    st.info("Advanced Technical Analysis & Market Psychology Protocol")
-    
 # --- PAGE 1: TECHNICAL ANALYSIS ---
-if page == "Mastery (Learning)":
+if page == "Technical Analysis":
     st.divider()
-    st.header("🏛️ Technical Analysis")
+    st.header("⚙ Technical Analysis")
 
     # Define tabs here
     t1, t2, t3, t4, t5 = st.tabs([
