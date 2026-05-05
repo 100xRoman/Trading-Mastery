@@ -76,22 +76,23 @@ search = st.text_input("Search for an indicator...")
 
 selected = None
 
-if search:  # ✅ ONLY show dropdown when typing
+search = st.text_input("Search for an indicator...")
+
+selected = None
+
+if search:
+    search_clean = search.strip().lower()
+
     filtered = [
         key for key in indicators.keys()
-        if search.lower() in key.lower()
+        if all(char in key.lower() for char in search_clean)
     ]
 
     if filtered:
-        selected = st.selectbox(
-            "Results",
-            filtered,
-            label_visibility="collapsed"  # removes "Select indicator"
-        )
+        selected = st.selectbox("", filtered, label_visibility="collapsed")
     else:
-        st.caption("No results found")
+        st.caption("No matching indicators")
 
-# Show selected indicator
 if selected:
     data = indicators[selected]
 
@@ -100,7 +101,7 @@ if selected:
     st.write(data["desc"])
     st.video(data["video"])
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
 # --- PAGE 1: TECHNICAL ANALYSIS ---
 if page == "Mastery (Learning)":
     st.divider()
