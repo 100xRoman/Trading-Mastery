@@ -724,14 +724,14 @@ if page == "Tools":
     
     # Create tabs
     t_pl, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
+        "💰 P&L Calculator",
         "📊 Journal",
         "📈 Compound",
         "🎯 DCA",
         "⚖️ Breakeven",
         "📏 Position %",
         "⚠️ Stress Test",
-        "🧠 Sentiment",
-        "💰 P&L Calculator"
+        "🧠 Sentiment"
     ])
 
 # =============================
