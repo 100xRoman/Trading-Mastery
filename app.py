@@ -7,23 +7,22 @@ import ccxt
 import numpy as np
 import streamlit.components.v1 as components
 
-    indicators = {
+indicators = {
     "RSI": {
         "title": "⚡ RSI: Momentum & Trend Exhaustion",
-        "desc": """The Relative Strength Index (RSI) is a momentum oscillator...""",
+        "desc": "The Relative Strength Index (RSI) is a momentum oscillator...",
         "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
     },
     "MACD": {
         "title": "📊 MACD: The Momentum Cycle Engine",
-        "desc": """The MACD is a trend-following momentum indicator...""",
+        "desc": "The MACD is a trend-following momentum indicator...",
         "video": "https://www.youtube.com/watch?v=tSr6UorS9Ro"
     },
     "Fibonacci": {
         "title": "📐 Fibonacci: The Golden Ratio Protocol",
-        "desc": """Fibonacci retracement levels are key reaction zones...""",
+        "desc": "Fibonacci retracement levels are key reaction zones...",
         "video": "https://www.youtube.com/watch?v=oVMeymdZwWI"
-    },
-    # Add the rest here...
+    }
 }
 
 # --- TERMINAL CONFIG ---
