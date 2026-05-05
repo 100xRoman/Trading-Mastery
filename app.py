@@ -10,7 +10,13 @@ import streamlit.components.v1 as components
 indicators = {
     "RSI": {
         "title": "⚡ RSI (Relative Strength Index)",
-        "desc": """The Relative Strength Index (RSI) measures momentum on a scale of 0–100...""",
+        "desc": """
+    The Relative Strength Index (RSI) is a sophisticated momentum oscillator that quantifies the velocity and magnitude of directional price movements. Operating on a scale from 0 to 100, it evaluates the internal strength of an asset by comparing the magnitude of recent gains to recent losses. Beyond the basic "overbought" (70) and "oversold" (30) levels, the RSI is a window into market psychology. When the RSI remains sustained in the upper or lower quartiles, it indicates a powerful trending market where "overbought" actually means "extremely strong."
+    
+    **How to Trade It:**
+    * **Hidden Bullish Divergence:** This occurs when price makes a Higher Low (HL) but the RSI makes a Lower Low (LL). This signals that the bears tried to push the momentum down, but the bulls maintained price structure—this is a high-confidence signal for trend continuation.
+    * **The 50-Level Pivot:** Use the 50 level as a macro bias filter. If the RSI is oscillating between 40 and 80, you are in a Bull Market. If it struggles to break 60 and drops to 20, you are in a Bear Market.
+    """,
         "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
     },
 
