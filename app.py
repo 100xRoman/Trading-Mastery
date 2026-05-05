@@ -734,56 +734,54 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
-# =============================
-# 💰 P&L + TOOLS SECTION
-# =============================
+    # =============================
+    # 💰 P&L CALCULATOR
+    # =============================
+    with t_pl:
+        st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
 
-# --- P&L CALCULATOR ---
-with t_pl:
-    st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
 
-    col1, col2 = st.columns(2)
+        with col1:
+            coin = st.text_input("Coin Symbol", placeholder="e.g., BTC").upper()
+            capital = st.number_input("Capital (USD)", min_value=0.0)
+            leverage = st.number_input("Leverage", min_value=1.0, value=1.0, step=1.0)
 
-    with col1:
-        coin = st.text_input("Coin Symbol", placeholder="e.g., BTC").upper()
-        capital = st.number_input("Capital (USD)", min_value=0.0)
-        leverage = st.number_input("Leverage", min_value=1.0, value=1.0, step=1.0)
+        with col2:
+            entry = st.number_input("Entry Price", min_value=0.0, format="%.4f")
+            sl = st.number_input("Stop Loss Price", min_value=0.0, format="%.4f")
+            tp = st.number_input("Take Profit Price", min_value=0.0, format="%.4f")
 
-    with col2:
-        entry = st.number_input("Entry Price", min_value=0.0, format="%.4f")
-        sl = st.number_input("Stop Loss Price", min_value=0.0, format="%.4f")
-        tp = st.number_input("Take Profit Price", min_value=0.0, format="%.4f")
-
-    if st.button("Calculate", use_container_width=True, key="pnl_btn"):
-        if not coin or capital <= 0 or entry <= 0:
-            st.error("Fill in all fields.")
-        else:
-            is_long = tp > entry
-
-            if (is_long and sl >= entry) or (not is_long and sl <= entry):
-                st.error("Invalid Stop Loss")
+        if st.button("Calculate", use_container_width=True, key="pnl_btn"):
+            if not coin or capital <= 0 or entry <= 0:
+                st.error("Fill in all fields.")
             else:
-                position_size = capital * leverage
-                amount_coin = position_size / entry
+                is_long = tp > entry
 
-                pnl_tp = (tp - entry) * amount_coin if is_long else (entry - tp) * amount_coin
-                pnl_sl = (entry - sl) * amount_coin if is_long else (sl - entry) * amount_coin
-
-                percent_gain = (pnl_tp / capital) * 100
-                percent_loss = (pnl_sl / capital) * 100
-                rrr = abs(pnl_tp / pnl_sl) if pnl_sl != 0 else 0
-
-                st.subheader(f"{coin} {'LONG' if is_long else 'SHORT'}")
-
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Gain", f"${abs(pnl_tp):.2f}", f"{percent_gain:.2f}%")
-                c2.metric("Loss", f"-${abs(pnl_sl):.2f}", f"-{abs(percent_loss):.2f}%")
-                c3.metric("R:R", f"1 : {rrr:.2f}")
-
-                if rrr < 2:
-                    st.warning("Low R:R")
+                if (is_long and sl >= entry) or (not is_long and sl <= entry):
+                    st.error("Invalid Stop Loss")
                 else:
-                    st.success("Good R:R")
+                    position_size = capital * leverage
+                    amount_coin = position_size / entry
+
+                    pnl_tp = (tp - entry) * amount_coin if is_long else (entry - tp) * amount_coin
+                    pnl_sl = (entry - sl) * amount_coin if is_long else (sl - entry) * amount_coin
+
+                    percent_gain = (pnl_tp / capital) * 100
+                    percent_loss = (pnl_sl / capital) * 100
+                    rrr = abs(pnl_tp / pnl_sl) if pnl_sl != 0 else 0
+
+                    st.subheader(f"{coin} {'LONG' if is_long else 'SHORT'}")
+
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Gain", f"${abs(pnl_tp):.2f}", f"{percent_gain:.2f}%")
+                    c2.metric("Loss", f"-${abs(pnl_sl):.2f}", f"-{abs(percent_loss):.2f}%")
+                    c3.metric("R:R", f"1 : {rrr:.2f}")
+
+                    if rrr < 2:
+                        st.warning("Low R:R")
+                    else:
+                        st.success("Good R:R")
 
 # -----------------------------
 # 📝 TRADING JOURNAL
