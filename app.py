@@ -67,36 +67,37 @@ def load_video(url):
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
-# Search bar (LIVE)
-search = st.text_input("Search for an indicator...", key="indicator_search")
+    # --- Search Input (LIVE) ---
+    search = st.text_input("Search for an indicator...", key="indicator_search")
 
-# Only show results if user typed something
-if search:
-    # Filter indicators (LIVE as you type)
-    filtered = [
-        key for key in indicators.keys()
-        if search.lower() in key.lower()
-    ]
+    # --- Filter logic (LIVE as you type) ---
+    filtered = []
+    if search:
+        filtered = [
+            key for key in indicators.keys()
+            if search.lower() in key.lower()
+        ]
 
-    if filtered:
-        st.markdown("### Results")
+    # --- Show results ONLY when typing ---
+    if search:
+        if filtered:
+            st.markdown("### Results")
 
-        for key in filtered:
-            if st.button(key, key=f"btn_{key}"):
-                st.session_state.selected_indicator = key
+            for key in filtered:
+                if st.button(key, key=f"btn_{key}"):
+                    st.session_state.selected_indicator = key
+        else:
+            st.warning("No indicators found.")
 
-    else:
-        st.warning("No indicators found.")
+    # --- Display selected indicator ---
+    if "selected_indicator" in st.session_state:
+        data = indicators[st.session_state.selected_indicator]
 
-# Show selected indicator
-if "selected_indicator" in st.session_state:
-    data = indicators[st.session_state.selected_indicator]
-
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
-    st.write(data["desc"])
-    st.video(data["video"])
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
+        st.write(data["desc"])
+        st.video(data["video"])
+        st.markdown('</div>', unsafe_allow_html=True)
     
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
