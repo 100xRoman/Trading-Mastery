@@ -7,6 +7,25 @@ import ccxt
 import numpy as np
 import streamlit.components.v1 as components
 
+    indicators = {
+    "RSI": {
+        "title": "⚡ RSI: Momentum & Trend Exhaustion",
+        "desc": """The Relative Strength Index (RSI) is a momentum oscillator...""",
+        "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
+    },
+    "MACD": {
+        "title": "📊 MACD: The Momentum Cycle Engine",
+        "desc": """The MACD is a trend-following momentum indicator...""",
+        "video": "https://www.youtube.com/watch?v=tSr6UorS9Ro"
+    },
+    "Fibonacci": {
+        "title": "📐 Fibonacci: The Golden Ratio Protocol",
+        "desc": """Fibonacci retracement levels are key reaction zones...""",
+        "video": "https://www.youtube.com/watch?v=oVMeymdZwWI"
+    },
+    # Add the rest here...
+}
+
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
 
@@ -49,25 +68,6 @@ def load_video(url):
 if page == "Mastery (Learning)":
     st.title("🏛️ Indicators")
     st.info("Advanced Technical Analysis & Market Psychology Protocol")
-
-    indicators = {
-    "RSI": {
-        "title": "⚡ RSI: Momentum & Trend Exhaustion",
-        "desc": """The Relative Strength Index (RSI) is a momentum oscillator...""",
-        "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
-    },
-    "MACD": {
-        "title": "📊 MACD: The Momentum Cycle Engine",
-        "desc": """The MACD is a trend-following momentum indicator...""",
-        "video": "https://www.youtube.com/watch?v=tSr6UorS9Ro"
-    },
-    "Fibonacci": {
-        "title": "📐 Fibonacci: The Golden Ratio Protocol",
-        "desc": """Fibonacci retracement levels are key reaction zones...""",
-        "video": "https://www.youtube.com/watch?v=oVMeymdZwWI"
-    },
-    # Add the rest here...
-}
 
 # --- PAGE: INDICATORS ---
 if page == "Indicators":
