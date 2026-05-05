@@ -738,7 +738,6 @@ if page == "Tools":
     # 💰 P&L CALCULATOR
     # =============================
     with t_pl:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
@@ -786,13 +785,10 @@ if page == "Tools":
                     else:
                         st.success("Good R:R")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # 📊 JOURNAL
     # =============================
     with t_journal:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">📊 Trade Journal</p>', unsafe_allow_html=True)
 
         if 'history' not in st.session_state:
@@ -829,13 +825,10 @@ if page == "Tools":
             st.session_state.history = []
             st.rerun()
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # 🚀 COMPOUND
     # =============================
     with t_compound:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
         start = st.number_input("Starting Capital ($)", value=0.0)
@@ -855,13 +848,10 @@ if page == "Tools":
             else:
                 st.warning("Enter valid values.")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # 🎯 DCA
     # =============================
     with t_dca:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">🎯 DCA Calculator</p>', unsafe_allow_html=True)
 
         p1 = st.number_input("Price 1", value=60000.0)
@@ -873,13 +863,10 @@ if page == "Tools":
             avg = (a1 + a2) / ((a1 / p1) + (a2 / p2))
             st.metric("Average Entry", f"${avg:,.2f}")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # ⚖️ BREAKEVEN
     # =============================
     with t_be:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚖️ Breakeven</p>', unsafe_allow_html=True)
 
         price = st.number_input("Entry Price", value=50000.0)
@@ -887,13 +874,10 @@ if page == "Tools":
 
         st.metric("Breakeven Price", f"${price * (1 + (fee/100)*2):,.2f}")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # 📏 POSITION SIZE
     # =============================
     with t_pos:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">📏 Position Size</p>', unsafe_allow_html=True)
 
         bal = st.number_input("Wallet ($)", value=1000.0)
@@ -902,13 +886,10 @@ if page == "Tools":
 
         st.metric("Margin Used", f"${(bal * (risk/100)) / lev:,.2f}")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # ⚠️ STRESS TEST
     # =============================
     with t_stress:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown('<p class="indicator-title">⚠️ Stress Test</p>', unsafe_allow_html=True)
 
         lev = st.slider("Leverage", 1, 100, 20)
@@ -916,12 +897,8 @@ if page == "Tools":
         st.error(f"Liquidation: {100/lev:.2f}% move")
         st.warning(f"1% move = {lev}% P&L")
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
     # =============================
     # 🧠 SENTIMENT
     # =============================
     with t_sentiment:
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.image("https://alternative.me/crypto/fear-and-greed-index.png")
-        st.markdown('</div>', unsafe_allow_html=True)
