@@ -74,18 +74,26 @@ if page == "Indicators":
 
 search = st.text_input("Search for an indicator...")
 
-filtered = [
-    key for key in indicators.keys()
-    if search.lower() in key.lower()
-] if search else list(indicators.keys())
+selected = None
 
-# Show results
-for key in filtered:
-    if st.button(key, use_container_width=True):
-        st.session_state.selected_indicator = key
+if search:  # ✅ ONLY show dropdown when typing
+    filtered = [
+        key for key in indicators.keys()
+        if search.lower() in key.lower()
+    ]
 
-if "selected_indicator" in st.session_state:
-    data = indicators[st.session_state.selected_indicator]
+    if filtered:
+        selected = st.selectbox(
+            "Results",
+            filtered,
+            label_visibility="collapsed"  # removes "Select indicator"
+        )
+    else:
+        st.caption("No results found")
+
+# Show selected indicator
+if selected:
+    data = indicators[selected]
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
