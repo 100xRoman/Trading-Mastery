@@ -67,26 +67,26 @@ def load_video(url):
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
+# Search bar (LIVE)
 search = st.text_input("Search for an indicator...", key="indicator_search")
 
-search_clean = search.strip().lower()
-
-if search_clean:
-    # Match ANYTHING that contains the letters
+# Only show results if user typed something
+if search:
+    # Filter indicators (LIVE as you type)
     filtered = [
         key for key in indicators.keys()
-        if search_clean in key.lower()
+        if search.lower() in key.lower()
     ]
 
     if filtered:
         st.markdown("### Results")
 
-        # Show ALL matches
         for key in filtered:
-            if st.button(key, key=f"btn_{key}", use_container_width=True):
+            if st.button(key, key=f"btn_{key}"):
                 st.session_state.selected_indicator = key
+
     else:
-        st.caption("No matching indicators")
+        st.warning("No indicators found.")
 
 # Show selected indicator
 if "selected_indicator" in st.session_state:
