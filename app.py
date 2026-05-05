@@ -67,14 +67,20 @@ def load_video(url):
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
-search = st.text_input(
-    "Search for an indicator...",
-    key="indicator_search"
-)
+search = st.text_input("Search for an indicator...", key="indicator_search")
+
+# Detect if search changed
+if "last_search" not in st.session_state:
+    st.session_state.last_search = ""
+
+if search != st.session_state.last_search:
+    st.session_state.selected_indicator = None
+    st.session_state.last_search = search
 
 selected = None
 
-if search:
+# Show dropdown ONLY when typing and nothing selected yet
+if search and not st.session_state.get("selected_indicator"):
     search_clean = search.strip().lower()
 
     filtered = [
@@ -83,12 +89,22 @@ if search:
     ]
 
     if filtered:
-        selected = st.selectbox("", filtered, label_visibility="collapsed")
+        selected = st.selectbox(
+            "",
+            filtered,
+            key="indicator_dropdown",
+            label_visibility="collapsed"
+        )
     else:
         st.caption("No matching indicators")
 
+# Save selection
 if selected:
-    data = indicators[selected]
+    st.session_state.selected_indicator = selected
+
+# Show result
+if st.session_state.get("selected_indicator"):
+    data = indicators[st.session_state.selected_indicator]
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
