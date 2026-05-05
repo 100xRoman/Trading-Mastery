@@ -72,7 +72,10 @@ if page == "Mastery (Learning)":
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
-search = st.text_input("Search for an indicator...")
+search = st.text_input(
+    "Search for an indicator...",
+    key="indicator_search"
+)
 
 selected = None
 
