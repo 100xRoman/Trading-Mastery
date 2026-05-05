@@ -723,7 +723,7 @@ if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
     
     # Create tabs
-    t_p&l, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
+    t_pl, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
         "📊 Journal",
         "📈 Compound",
         "🎯 DCA",
@@ -735,7 +735,7 @@ if page == "Tools":
     ])
 
     # --- POSITION SIZER & RISK CALCULATOR ---
-        with t_journal:
+        with t_pl:
     st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
