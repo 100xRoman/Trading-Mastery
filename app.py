@@ -22,6 +22,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=z3fbVK5e5Io")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 2. MACD (MOVING AVERAGE CONVERGENCE DIVERGENCE) ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">📊 MACD: The Momentum Cycle Engine</p>', unsafe_allow_html=True)
@@ -36,6 +38,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=tSr6UorS9Ro")    
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 3. FIBONACCI RETRACEMENT ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">📐 Fibonacci: The Golden Ratio Protocol</p>', unsafe_allow_html=True)
@@ -48,7 +52,9 @@ indicators = {
     """)
     
     st.video("https://www.youtube.com/watch?v=oVMeymdZwWI")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True
+
+    },
 
     # --- 4. OBV (ON-BALANCE VOLUME) ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -64,6 +70,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=7GsKu4DVqbQ&vl=en")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 5. ICHIMOKU CLOUD ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">☁️ Ichimoku: The Equilibrium Visualizer</p>', unsafe_allow_html=True)
@@ -76,7 +84,9 @@ indicators = {
     """)
     
     st.video("https://www.youtube.com/watch?v=Ow0U7o5c0EM")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True
+
+    },
 
     # --- 6. CCI (COMMODITY CHANNEL INDEX) ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -90,7 +100,9 @@ indicators = {
     """)
     
     st.video("https://www.youtube.com/watch?v=9babULjrPLE")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True
+
+    },
 
     # --- 7. STOCHASTIC OSCILLATOR ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -106,6 +118,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=WGLIiLU-CWE")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 8. ATR (AVERAGE TRUE RANGE) ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">📏 ATR: Volatility & Risk Engineering</p>', unsafe_allow_html=True)
@@ -119,6 +133,8 @@ indicators = {
     
     st.video("https://www.youtube.com/watch?v=NEf62LQqnQs")
     st.markdown('</div>', unsafe_allow_html=True)
+
+    },
 
     # --- 9. MOVING AVERAGES (EMA/SMA) ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -134,6 +150,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=ADRTal_rWFk")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 10. PARABOLIC SAR ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">🎯 Parabolic SAR: Precision Trend Catching</p>', unsafe_allow_html=True)
@@ -148,6 +166,8 @@ indicators = {
     st.video("https://www.youtube.com/watch?v=sgH7zdxwwzc")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    },
+
     # --- 11. KELTNER CHANNELS ---
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<p class="indicator-title">🏎️ Keltner Channels: The Volatility Envelope</p>', unsafe_allow_html=True)
@@ -160,10 +180,10 @@ indicators = {
     """)
     
     st.video("https://www.youtube.com/watch?v=kduJOzcMkpI")
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True
 
+    }
 }
-
 
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
