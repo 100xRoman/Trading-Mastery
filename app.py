@@ -734,178 +734,169 @@ if page == "Tools":
         "💰 P&L Calculator"
     ])
 
-    # --- POSITION SIZER & RISK CALCULATOR ---
-    with t_pl:
-        st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
-    
+# =============================
+# 💰 P&L + TOOLS SECTION
+# =============================
+
+# --- P&L CALCULATOR ---
+with t_pl:
+    st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         coin = st.text_input("Coin Symbol", placeholder="e.g., BTC").upper()
-        capital = st.number_input("Capital (USD)", min_value=0.0, help="Your balance before leverage")
+        capital = st.number_input("Capital (USD)", min_value=0.0)
         leverage = st.number_input("Leverage", min_value=1.0, value=1.0, step=1.0)
-        
-    with col2:
-        entry = st.number_input("Entry Price", min_value=0.0, step=0.0001, format="%.4f")
-        sl = st.number_input("Stop Loss Price", min_value=0.0, step=0.0001, format="%.4f")
-        tp = st.number_input("Take Profit Price", min_value=0.0, step=0.0001, format="%.4f")
 
-    if st.button("Calculate Risk & Reward", use_container_width=True):
+    with col2:
+        entry = st.number_input("Entry Price", min_value=0.0, format="%.4f")
+        sl = st.number_input("Stop Loss Price", min_value=0.0, format="%.4f")
+        tp = st.number_input("Take Profit Price", min_value=0.0, format="%.4f")
+
+    if st.button("Calculate", use_container_width=True, key="pnl_btn"):
         if not coin or capital <= 0 or entry <= 0:
-            st.error("Please fill in all fields with valid numbers.")
+            st.error("Fill in all fields.")
         else:
-            # Determine trade type (Logic from popup.js)
             is_long = tp > entry
-            
-            # Validate Stop Loss (Logic from popup.js)
+
             if (is_long and sl >= entry) or (not is_long and sl <= entry):
-                st.error("🚨 Invalid Stop Loss for this trade!")
+                st.error("Invalid Stop Loss")
             else:
-                # Calculations including leverage
                 position_size = capital * leverage
                 amount_coin = position_size / entry
-                
-                # P&L in USD based on direction
+
                 pnl_tp = (tp - entry) * amount_coin if is_long else (entry - tp) * amount_coin
                 pnl_sl = (entry - sl) * amount_coin if is_long else (sl - entry) * amount_coin
-                
-                # Percentage gain/loss relative to actual capital
+
                 percent_gain = (pnl_tp / capital) * 100
                 percent_loss = (pnl_sl / capital) * 100
-                
-                # Risk:Reward ratio
                 rrr = abs(pnl_tp / pnl_sl) if pnl_sl != 0 else 0
 
-                # Professional Terminal Output
-                st.markdown("---")
-                st.subheader(f"📈 {coin} {'LONG' if is_long else 'SHORT'} Overview")
-                
-                res_col1, res_col2, res_col3 = st.columns(3)
-                res_col1.metric("Potential Gain", f"${abs(pnl_tp):.2f}", f"{percent_gain:.2f}%")
-                res_col2.metric("Potential Loss", f"-${abs(pnl_sl):.2f}", f"-{abs(percent_loss):.2f}%", delta_color="inverse")
-                res_col3.metric("R:R Ratio", f"1 : {rrr:.2f}")
-                
-                if rrr < 2.0:
-                    st.warning("⚠️ Low Risk:Reward ratio. Ensure this aligns with your Pillars.")
+                st.subheader(f"{coin} {'LONG' if is_long else 'SHORT'}")
+
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Gain", f"${abs(pnl_tp):.2f}", f"{percent_gain:.2f}%")
+                c2.metric("Loss", f"-${abs(pnl_sl):.2f}", f"-{abs(percent_loss):.2f}%")
+                c3.metric("R:R", f"1 : {rrr:.2f}")
+
+                if rrr < 2:
+                    st.warning("Low R:R")
                 else:
-                    st.success("✅ High R:R trade detected.")
-                    
-    # -----------------------------
-    # 1. TRADING JOURNAL
-    # -----------------------------
-    with t_journal:
-        st.markdown('<p class="indicator-title">📝 Trade Log</p>', unsafe_allow_html=True)
+                    st.success("Good R:R")
 
-        # Initialize session state
-        if 'history' not in st.session_state:
-            st.session_state.history = []
+# -----------------------------
+# 📝 TRADING JOURNAL
+# -----------------------------
+with t_journal:
+    st.markdown('<p class="indicator-title">📝 Trade Log</p>', unsafe_allow_html=True)
 
-        # Trade log form
-        with st.form("log_trade"):
-            c1, c2, c3 = st.columns(3)
-            t_type = c1.selectbox("Type", ["LONG", "SHORT"])
-            t_cap = c1.number_input("Capital ($)", min_value=0.0, value=100.0)
-            t_lev = c2.number_input("Leverage", min_value=1, value=10)
-            p_mode = c2.radio("Input", ["%", "$"])
-            t_val = c3.number_input("P&L Value", value=0.0)
+    if 'history' not in st.session_state:
+        st.session_state.history = []
 
-            if st.form_submit_button("Log Position"):
-                usd = t_val if p_mode == "$" else (t_val/100)*t_cap
-                pct = t_val if p_mode == "%" else (t_val/t_cap)*100
-                st.session_state.history.append({
-                    "Type": t_type,
-                    "Capital": t_cap,
-                    "P&L $": usd,
-                    "P&L %": pct
-                })
+    with st.form("log_trade"):
+        c1, c2, c3 = st.columns(3)
 
-        # Display trade history table
-        if st.session_state.history:
-            st.table(pd.DataFrame(st.session_state.history))
+        t_type = c1.selectbox("Type", ["LONG", "SHORT"])
+        t_cap = c1.number_input("Capital ($)", value=100.0)
 
-        # Clear button (outside the form)
-        if st.button("Clear Journal"):
-            st.session_state.history = []
-            st.experimental_rerun()
+        t_lev = c2.number_input("Leverage", value=10)
+        p_mode = c2.radio("Input", ["%", "$"])
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        t_val = c3.number_input("P&L Value", value=0.0)
 
-    # -----------------------------
-    # 2. COMPOUND CALCULATOR
-    # -----------------------------
-    with t_compound:
-        st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
+        if st.form_submit_button("Log Trade"):
+            usd = t_val if p_mode == "$" else (t_val / 100) * t_cap
+            pct = t_val if p_mode == "%" else (t_val / t_cap) * 100
 
-        s_bal = st.number_input("Starting Capital ($)", min_value=0.0, value=0.0, key="comp_s")
-        n_doubles = st.number_input("Times to Double", min_value=0, step=1, value=0, key="comp_n")
+            st.session_state.history.append({
+                "Type": t_type,
+                "Capital": t_cap,
+                "P&L $": usd,
+                "P&L %": pct
+            })
 
-        if st.button("Enter", key="compound_btn"):
-            if s_bal <= 0 or n_doubles <= 0:
-                st.warning("Please enter valid values for both fields.")
-            else:
-                data = []
-                current = s_bal
+    if st.session_state.history:
+        st.table(pd.DataFrame(st.session_state.history))
 
-                for i in range(n_doubles + 1):
-                    data.append({
-                        "Step": i,
-                        "Balance ($)": current
-                    })
-                    current *= 2
+    if st.button("Clear Journal"):
+        st.session_state.history = []
+        st.rerun()
 
-                df = pd.DataFrame(data)
+# -----------------------------
+# 🚀 COMPOUND
+# -----------------------------
+with t_compound:
+    st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
-                st.markdown("### Growth Table")
-                st.dataframe(df, use_container_width=True)
+    start = st.number_input("Starting Capital ($)", value=0.0)
+    doubles = st.number_input("Times to Double", value=0)
 
-                st.metric("Final Balance", f"${df.iloc[-1]['Balance ($)']:,.2f}")
+    if st.button("Calculate", key="compound_btn"):
+        if start > 0 and doubles > 0:
+            val = start
+            data = []
 
-    # -----------------------------
-    # 3. DCA CALCULATOR
-    # -----------------------------
-    with t_dca:
-        st.markdown('<p class="indicator-title">🎯 DCA Average Entry</p>', unsafe_allow_html=True)
-        col_d1, col_d2 = st.columns(2)
-        p1 = col_d1.number_input("Price 1", value=60000.0, key="dca_p1")
-        a1 = col_d1.number_input("Amount 1", value=500.0, key="dca_a1")
-        p2 = col_d2.number_input("Price 2", value=55000.0, key="dca_p2")
-        a2 = col_d2.number_input("Amount 2", value=500.0, key="dca_a2")
-        if p1 > 0 and p2 > 0:
-            avg = (a1 + a2) / ((a1/p1) + (a2/p2))
-            st.metric("Weighted Average", f"${avg:,.2f}")
+            for i in range(doubles + 1):
+                data.append({"Step": i, "Balance": val})
+                val *= 2
 
-    # -----------------------------
-    # 4. BREAKEVEN CALCULATOR
-    # -----------------------------
-    with t_be:
-        st.markdown('<p class="indicator-title">⚖️ Breakeven Finder</p>', unsafe_allow_html=True)
-        be_p = st.number_input("Entry Price", value=50000.0, key="be_p")
-        be_f = st.number_input("Fee % (One-way)", value=0.06, format="%.3f", key="be_f")
-        st.metric("Exit Price for $0 Loss", f"${be_p * (1 + (be_f/100)*2):,.2f}")
+            st.dataframe(pd.DataFrame(data), use_container_width=True)
+            st.metric("Final Balance", f"${val/2:,.2f}")
+        else:
+            st.warning("Enter valid values.")
 
-    # -----------------------------
-    # 5. POSITION SIZE %
-    # -----------------------------
-    with t_pos:
-        st.markdown('<p class="indicator-title">📏 Margin Converter</p>', unsafe_allow_html=True)
-        w_bal = st.number_input("Wallet Balance ($)", value=1000.0, key="pos_w")
-        r_pct = st.slider("Wallet % to Risk", 1, 100, 10, key="pos_r")
-        l_used = st.number_input("Leverage (x)", value=10, key="pos_l")
-        st.metric("Bybit Margin Required", f"${(w_bal * (r_pct/100)) / l_used:,.2f}")
+# -----------------------------
+# 🎯 DCA
+# -----------------------------
+with t_dca:
+    st.markdown('<p class="indicator-title">🎯 DCA Calculator</p>', unsafe_allow_html=True)
 
-    # -----------------------------
-    # 6. LEVERAGE STRESS TEST
-    # -----------------------------
-    with t_stress:
-        st.markdown('<p class="indicator-title">⚠️ Leverage Stress Test</p>', unsafe_allow_html=True)
-        st_p = st.number_input("Entry Price", value=50000.0, key="stress_p")
-        st_l = st.slider("Leverage", 1, 100, 20, key="stress_l")
-        st.error(f"Liquidation Point: {100/st_l:.2f}% price drop.")
-        st.warning(f"A 1% move results in a {1 * st_l}% P&L change.")
+    p1 = st.number_input("Price 1", value=60000.0)
+    a1 = st.number_input("Amount 1", value=500.0)
+    p2 = st.number_input("Price 2", value=55000.0)
+    a2 = st.number_input("Amount 2", value=500.0)
 
-    # -----------------------------
-    # 7. MARKET SENTIMENT
-    # -----------------------------
-    with t_sentiment:
-        st.image("https://alternative.me/crypto/fear-and-greed-index.png", caption="Fear & Greed Index")
-    
+    if p1 > 0 and p2 > 0:
+        avg = (a1 + a2) / ((a1 / p1) + (a2 / p2))
+        st.metric("Average Entry", f"${avg:,.2f}")
+
+# -----------------------------
+# ⚖️ BREAKEVEN
+# -----------------------------
+with t_be:
+    st.markdown('<p class="indicator-title">⚖️ Breakeven</p>', unsafe_allow_html=True)
+
+    price = st.number_input("Entry Price", value=50000.0)
+    fee = st.number_input("Fee %", value=0.06)
+
+    st.metric("Breakeven Price", f"${price * (1 + (fee/100)*2):,.2f}")
+
+# -----------------------------
+# 📏 POSITION SIZE
+# -----------------------------
+with t_pos:
+    st.markdown('<p class="indicator-title">📏 Position Size</p>', unsafe_allow_html=True)
+
+    bal = st.number_input("Wallet ($)", value=1000.0)
+    risk = st.slider("Risk %", 1, 100, 10)
+    lev = st.number_input("Leverage", value=10)
+
+    st.metric("Margin Used", f"${(bal * (risk/100)) / lev:,.2f}")
+
+# -----------------------------
+# ⚠️ STRESS TEST
+# -----------------------------
+with t_stress:
+    st.markdown('<p class="indicator-title">⚠️ Stress Test</p>', unsafe_allow_html=True)
+
+    lev = st.slider("Leverage", 1, 100, 20)
+
+    st.error(f"Liquidation: {100/lev:.2f}% move")
+    st.warning(f"1% move = {lev}% P&L")
+
+# -----------------------------
+# 🧠 SENTIMENT
+# -----------------------------
+with t_sentiment:
+    st.image("https://alternative.me/crypto/fear-and-greed-index.png")
