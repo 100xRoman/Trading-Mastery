@@ -67,37 +67,27 @@ def load_video(url):
 if page == "Indicators":
     st.markdown('<p class="pillar-title">Indicator Intelligence</p>', unsafe_allow_html=True)
 
-    # --- Search Input (LIVE) ---
-    search = st.text_input("Search for an indicator...", key="indicator_search")
+    # --- Search (exact match only) ---
+    search = st.text_input(
+        "Search for an indicator (e.g. RSI, MACD)...",
+        key="indicator_search"
+    )
 
-    # --- Filter logic (LIVE as you type) ---
-    filtered = []
+    # --- Only show result if exact match ---
     if search:
-        filtered = [
-            key for key in indicators.keys()
-            if search.lower() in key.lower()
-        ]
+        key = search.strip().upper()
 
-    # --- Show results ONLY when typing ---
-    if search:
-        if filtered:
-            st.markdown("### Results")
+        if key in indicators:
+            data = indicators[key]
 
-            for key in filtered:
-                if st.button(key, key=f"btn_{key}"):
-                    st.session_state.selected_indicator = key
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
+            st.write(data["desc"])
+            st.video(data["video"])
+            st.markdown('</div>', unsafe_allow_html=True)
+
         else:
-            st.warning("No indicators found.")
-
-    # --- Display selected indicator ---
-    if "selected_indicator" in st.session_state:
-        data = indicators[st.session_state.selected_indicator]
-
-        st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
-        st.write(data["desc"])
-        st.video(data["video"])
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.warning("Indicator not found. Make sure you type it exactly (e.g. RSI).")
     
 # --- PAGE 1: MASTERY (LEARNING) ---
 if page == "Mastery (Learning)":
