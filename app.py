@@ -437,11 +437,12 @@ if page == "Technical Analysis":
     st.header("⚙ Technical Analysis")
 
     # Define tabs here
-    t1, t2, t3, t4 = st.tabs([
+    t1, t2, t3, t4, t5 = st.tabs([
         "🏦 Liquidity", 
         "🕯️ Price Action", 
         "🌊 Volume", 
-        "📈 Market Structure", 
+        "📈 Market Structure",
+        "🧲 Supply and Demand"
     ])
 
     # =========================
@@ -639,6 +640,99 @@ Understanding **market structure** is essential for trading like smart money. Ma
         
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
+
+    ```python
+# =========================
+# 🧲 TAB 5: SUPPLY & DEMAND
+# =========================
+with t5:
+    st.subheader("Supply & Demand Dynamics")
+
+    st.write("""
+Supply and demand are the foundation of all market movement. 
+Price moves because of an imbalance between buyers and sellers — when demand exceeds supply, price rises; when supply exceeds demand, price falls.
+
+### Understanding Supply & Demand Zones
+Supply and demand zones are areas where institutions previously entered the market with significant volume.
+
+- **Demand Zone:** Area where aggressive buying caused price to rally
+- **Supply Zone:** Area where aggressive selling caused price to decline
+
+These zones represent institutional interest and often become areas where price reacts again in the future.
+
+### Why Institutions Use Supply & Demand
+Large institutions cannot enter full positions instantly. 
+Instead, they accumulate positions over time within key zones where enough opposing orders exist.
+
+This creates:
+- Sharp impulsive moves away from zones
+- Strong reactions when price revisits them
+- Repeated institutional participation
+
+### Characteristics of Strong Zones
+
+#### Strong Demand Zone
+- Explosive bullish move away
+- Large bullish candles
+- High volume expansion
+- Minimal time spent at base
+
+#### Strong Supply Zone
+- Aggressive bearish move away
+- Strong displacement candles
+- Heavy selling pressure
+- Quick rejection from highs
+
+### How Supply & Demand Works
+Price constantly searches for balance between buyers and sellers.
+
+When imbalance becomes extreme:
+- Demand overwhelms supply → price rallies
+- Supply overwhelms demand → price drops
+
+The stronger the imbalance, the stronger the move.
+
+### Trading Supply & Demand
+
+Instead of chasing price:
+- Wait for price to revisit a high-quality zone
+- Look for confirmation/rejection
+- Enter as institutions defend the level
+
+Confluences that strengthen a setup:
+- Liquidity sweep into zone
+- Volume spike
+- Market structure shift
+- Strong rejection candle
+- Trend alignment
+
+### Common Mistakes
+- Trading weak zones with no displacement
+- Ignoring higher timeframe context
+- Entering before confirmation
+- Chasing after price already moved
+
+### Institutional Supply & Demand Setups
+
+| Setup | What It Implies |
+|-------|----------------|
+| Strong rally from demand zone | Institutional accumulation |
+| Sharp selloff from supply zone | Institutional distribution |
+| Return into unmitigated zone | Potential high-probability reaction |
+| Liquidity sweep into zone | Smart money entry opportunity |
+
+### Key Takeaways
+- Supply & demand drive all markets  
+- Institutions leave footprints through imbalances  
+- Strong zones create explosive reactions  
+- Wait for price to return into key areas  
+- Trade confirmation, not emotion
+""")
+
+    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    st.video("https://www.youtube.com/watch?v=QwZT7T-TXT0")
+    st.video("https://www.youtube.com/watch?v=0kK7CFK2S8A")
+    st.video("https://www.youtube.com/watch?v=6Lx8g0P8Y8I")
 
 # --- PAGE 2: CHARTS ---
 if page == "Charts":
