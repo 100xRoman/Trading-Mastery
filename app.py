@@ -935,7 +935,7 @@ if page == "Tools":
 
 # --- PAGE: DONATE ---
 if page == "Donate":
-    st.title("💛 Support Romanstrades")
+    st.title("💛 Support Roman's Trades")
     st.write("If this platform has helped your trading journey, consider sending a donation. Every contribution keeps this project alive and growing. Thank you! 🙏")
     st.divider()
 
@@ -943,19 +943,19 @@ if page == "Donate":
         {
             "label": "₿ Bitcoin (BTC)",
             "network": "Bitcoin Network",
-            "address": "YOUR_BTC_WALLET_ADDRESS_HERE",
+            "address": "bc1q84lxedy3gjfecy52lfw2pdyw2puedd5v876ek0",
             "color": "#F7931A"
         },
         {
             "label": "Ξ Ethereum (ETH)",
             "network": "ERC-20 Network",
-            "address": "YOUR_ETH_WALLET_ADDRESS_HERE",
+            "address": "0xF4fbB1A81ed4b8aee4FB8c225311f3F535A9958F",
             "color": "#627EEA"
         },
         {
             "label": "◎ Solana (SOL)",
             "network": "Solana Network",
-            "address": "YOUR_SOL_WALLET_ADDRESS_HERE",
+            "address": "8SedZgSzvYBrGckq6ySKqHXDRBKBYPgS1VhUipZua4fZ",
             "color": "#9945FF"
         },
     ]
