@@ -161,49 +161,108 @@ st.markdown("""
         padding: 20px; margin: 20px 0; border-radius: 8px; font-size: 16px; line-height: 1.6;
     }
     .sidebar-title { color: #58A6FF; font-size: 22px; font-weight: 800; text-align: center; }
+    .suggestion-btn {
+        background-color: #21262D;
+        border: 1px solid #30363D;
+        border-radius: 8px;
+        padding: 10px 16px;
+        color: #58A6FF;
+        cursor: pointer;
+        margin: 4px 0;
+        width: 100%;
+        text-align: left;
+        font-size: 15px;
+        transition: background 0.2s;
+    }
+    .suggestion-btn:hover { background-color: #30363D; }
+    .wallet-card {
+        background-color: #161B22;
+        border: 1px solid #30363D;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    .wallet-label { color: #f1c40f; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .wallet-addr {
+        background: #0D1117;
+        border: 1px solid #30363D;
+        border-radius: 6px;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 14px;
+        color: #58A6FF;
+        word-break: break-all;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Crypto Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("MENU", ["Basics", "Technical Analysis", "Indicators", "Charts", "Tools"])
+    page = st.radio("MENU", ["Basics", "Technical Analysis", "Indicators", "Charts", "Tools", "Donate", "Contact"])
     st.divider()
     st.caption("℗Romanstrades")
 
 # --- Initialize session state ---
 if "active_video" not in st.session_state:
     st.session_state.active_video = None
-
-# --- Function to set active video ---
-def load_video(url):
-    st.session_state.active_video = url
+if "selected_indicator" not in st.session_state:
+    st.session_state.selected_indicator = None
 
 # --- PAGE: INDICATORS ---
 if page == "Indicators":
     st.title("🧭 Indicators")
 
-    # --- Search (exact match only) ---
     search = st.text_input(
-        "Search for an indicator (e.g. RSI, MACD)...",
-        key="indicator_search"
+        "Search for an indicator...",
+        key="indicator_search",
+        placeholder="e.g. RSI, MACD, ATR..."
     )
 
-    # --- Only show result if exact match ---
-    if search:
-        key = search.strip().upper()
+    query = search.strip().upper()
 
+    # If a specific indicator was selected from suggestions, show it
+    if st.session_state.selected_indicator and not query:
+        key = st.session_state.selected_indicator
         if key in indicators:
             data = indicators[key]
-
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
             st.write(data["desc"])
             st.video(data["video"])
             st.markdown('</div>', unsafe_allow_html=True)
+    elif query:
+        # Find all matching indicators
+        matches = [k for k in indicators.keys() if query in k]
 
+        if len(matches) == 1 and matches[0] == query:
+            # Exact match — show directly
+            data = indicators[query]
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
+            st.write(data["desc"])
+            st.video(data["video"])
+            st.markdown('</div>', unsafe_allow_html=True)
+        elif matches:
+            st.markdown("**Suggestions — click to view:**")
+            for match in matches:
+                if st.button(f"📊 {indicators[match]['title']}", key=f"btn_{match}", use_container_width=True):
+                    st.session_state.selected_indicator = match
+                    st.rerun()
         else:
-            st.warning("Indicator not found. Make sure you type it exactly (e.g. RSI).")
+            st.warning("No indicators found. Try: RSI, MACD, ATR, OBV, CCI...")
+    else:
+        # Show all indicators as browsable list when nothing is typed
+        st.markdown("**All Indicators — click to explore:**")
+        for key, data in indicators.items():
+            if st.button(f"{data['title']}", key=f"browse_{key}", use_container_width=True):
+                st.session_state.selected_indicator = key
+                st.rerun()
+
+    # Reset selected indicator when user types something new
+    if query and st.session_state.selected_indicator:
+        st.session_state.selected_indicator = None
+
 
 if page == "Basics":
     st.title("🏫 Basics")
@@ -216,12 +275,8 @@ if page == "Basics":
         "🧠 Psychology"
     ])
 
-    # =========================
-    # 💰 WHAT IS TRADING
-    # =========================
     with b1:
         st.subheader("💰 What is Trading?")
-
         st.write("""
 Trading is the process of buying and selling assets to profit from changes in price.
 
@@ -229,12 +284,10 @@ At a surface level, it looks simple — buy low, sell high. But in reality, trad
 
 Unlike long-term investing, trading focuses on **short- to medium-term opportunities**, using price action, liquidity, and market behavior to make decisions.
 """)
-
         st.write("""
 **Key Shift in Thinking:**  
 You are not trading coins, stocks, or assets — you are trading **price movement and behavior**.
 """)
-        
         st.write("""
 ### How Traders Make Money
 There are only two ways to profit in any market:
@@ -246,7 +299,7 @@ Everything else — indicators, strategies, signals — is just a tool to help y
 
 ### The Reality of Trading
 Markets are driven by **liquidity, emotions, and large players**, not by opinions or guesses.  
-This means trading is not about being right — it’s about being **consistently better than the average participant**.
+This means trading is not about being right — it's about being **consistently better than the average participant**.
 
 ### Key Takeaways
 - Trading is probability-based, not guaranteed  
@@ -254,19 +307,13 @@ This means trading is not about being right — it’s about being **consistentl
 - Understanding price behavior is more important than predictions  
 """)
 
-
-    # =========================
-    # 📊 MARKET CONDITIONS
-    # =========================
     with b2:
         st.subheader("📊 Market Conditions")
-
         st.write("""
 Before entering any trade, you need to understand **what type of market you are in**.
 
 Most beginners lose money because they apply the same strategy in every condition — but markets behave very differently depending on structure and volatility.
 """)
-
         st.write("""
 ### 📈 Trending Market
 A trending market moves clearly in one direction:
@@ -292,28 +339,21 @@ Volatility increases during news, major events, or liquidity grabs.
 - Higher risk but also higher opportunity  
 
 This is where most traders get trapped due to emotional decisions.
-
 """)
-
         st.write("""
 **Professional Rule:**  
 Identify the market condition first — then apply the strategy that fits it.  
 Not the other way around.
 """)
 
-    # =========================
-    # ⚖️ RISK MANAGEMENT
-    # =========================
     with b3:
         st.subheader("⚖️ Risk Management")
-
         st.write("""
 Risk management is the single most important skill in trading.
 
 You can have a great strategy and still lose everything if your risk is not controlled.  
 Professional traders focus on **protecting capital first**, and profits come as a result of consistency.
 """)
-
         st.write("""
 ### Core Concepts
 
@@ -326,14 +366,12 @@ Where you lock in gains.
 **Risk-to-Reward Ratio (R:R):**  
 How much you risk compared to how much you aim to make.
 """)
-
         st.write("""
 **Example:**  
 Risk $100 to make $200 → 1:2 R:R  
 
 Even if you only win 50% of trades, you are still profitable.
 """)
-
         st.write("""
 ### Why Most Traders Fail
 - Risking too much per trade  
@@ -346,19 +384,13 @@ Even if you only win 50% of trades, you are still profitable.
 - Consistency beats big wins  
 """)
 
-
-    # =========================
-    # 📈 LONG VS SHORT
-    # =========================
     with b4:
         st.subheader("📈 Long vs Short")
-
         st.write("""
 One of the biggest advantages in trading is that you can profit in **both directions**.
 
 You are not limited to markets going up — you can also take advantage of falling prices.
 """)
-
         st.write("""
 ### 📈 Long (Buy)
 You enter a long position when you expect price to rise.
@@ -374,7 +406,6 @@ You enter a short position when you expect price to fall.
 - Buy back at a lower price  
 - Profit from downward movement  
 """)
-
         st.write("""
 **Example:**  
 BTC at $80,000  
@@ -382,28 +413,21 @@ BTC at $80,000
 - Long → profit if it rises to $85,000  
 - Short → profit if it drops to $75,000  
 """)
-
         st.write("""
 ### Key Takeaways
-- You don’t need a bullish market to make money  
+- You don't need a bullish market to make money  
 - Direction matters more than bias  
 - Always trade what the market is doing, not what you think it should do  
 """)
 
-
-    # =========================
-    # 🧠 PSYCHOLOGY
-    # =========================
     with b5:
         st.subheader("🧠 Trading Psychology")
-
         st.write("""
 Trading is not just technical — it is psychological.
 
-Most traders don’t lose because of bad strategies.  
+Most traders don't lose because of bad strategies.  
 They lose because they cannot control their emotions.
 """)
-
         st.write("""
 ### Common Emotional Mistakes
 - Overtrading after wins  
@@ -411,14 +435,12 @@ They lose because they cannot control their emotions.
 - Fear of missing out (FOMO)  
 - Moving stop losses to avoid being wrong  
 """)
-
         st.write("""
 **Professional Mindset:**  
 Think in probabilities, not certainties.  
 
 Losses are part of the system — not something to avoid at all costs.
 """)
-
         st.write("""
 ### What Separates Professionals
 - Discipline over emotion  
@@ -432,11 +454,10 @@ Losses are part of the system — not something to avoid at all costs.
 """)
 
 
-    # --- PAGE 1: TECHNICAL ANALYSIS ---
+# --- PAGE: TECHNICAL ANALYSIS ---
 if page == "Technical Analysis":
     st.header("⚙ Technical Analysis")
 
-    # Define tabs here
     t1, t2, t3, t4, t5 = st.tabs([
         "🏦 Liquidity", 
         "🕯️ Price Action", 
@@ -445,14 +466,10 @@ if page == "Technical Analysis":
         "🧲 Supply and Demand"
     ])
 
-    # =========================
-    # 🏦 TAB 1: LIQUIDITY
-    # =========================
     with t1:
         st.subheader("Liquidity & Whale Behavior")
-        
         st.write("""
-Liquidity is the lifeblood of markets — it’s what allows trades to be filled with minimal price disruption. 
+Liquidity is the lifeblood of markets — it's what allows trades to be filled with minimal price disruption. 
 Without liquidity, markets freeze, spreads widen, and execution becomes unpredictable.
 
 ### Why Liquidity Matters to Institutions
@@ -482,7 +499,7 @@ Instead of entering at obvious levels and risking stops:
 - Look for quick rejection and reclaim
 - Enter after liquidity is taken, trading the reaction
 
-Key principle: **Don’t trade the liquidity target — trade the reaction.**
+Key principle: **Don't trade the liquidity target — trade the reaction.**
 
 ### Institutional Liquidity Setups
 
@@ -499,15 +516,11 @@ Key principle: **Don’t trade the liquidity target — trade the reaction.**
 - True edges occur after liquidity is captured  
 - Wait for reaction, not touch
 """)
-        
         st.video("https://www.youtube.com/watch?v=6E__nsyA0a8")
         st.video("https://www.youtube.com/watch?v=qrLJgQUOceY")
         st.video("https://www.youtube.com/watch?v=nJqOwTHVA60")
         st.video("https://www.youtube.com/watch?v=X9bz--vwhvo")
-        
-    # =========================
-    # 🕯️ TAB 2: PRICE ACTION
-    # =========================
+
     with t2:
         st.subheader("🕯️ Price Action & Fair Value Gaps (FVG)")
         st.write("""
@@ -534,7 +547,7 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
 
 ### How to Trade Fair Value Gaps
 1. **Identify the gap:** Spot strong moves leaving an imbalance.
-2. **Wait for price to approach:** Don’t enter on the first impulse; wait for a retracement.
+2. **Wait for price to approach:** Don't enter on the first impulse; wait for a retracement.
 3. **Look for reaction:** Candlestick rejection, confluence with key levels, or liquidity pools nearby.
 4. **Enter with tight stop:** Place your stop just beyond the gap or beyond the next liquidity level.
 5. **Target continuation:** Price often moves back in the original direction after filling the FVG.
@@ -552,18 +565,14 @@ FVGs are essentially footprints of institutional order flow — they indicate ar
 - Combine FVG analysis with trend direction and other liquidity concepts for the highest probability setups.  
 - Fair Value Gaps exist across all timeframes — higher timeframes often provide more reliable signals.  
 """)
-        
         st.video("https://www.youtube.com/watch?v=3x4FQqf7X0E")
         st.video("https://www.youtube.com/watch?v=jLxGqGZhzq4")
         st.video("https://www.youtube.com/watch?v=7eU0kZyZejk")
-    
-    # =========================
-    # 🌊 TAB 3: VOLUME
-    # =========================
+
     with t3:
         st.subheader("🌊 Advanced Volume & Effort vs. Result")
         st.write("""
-Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn’t enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
+Volume is one of the clearest ways to see what the smart money is doing. But raw volume alone isn't enough — understanding the relationship between **effort (volume)** and **result (price movement)** gives you a window into supply and demand dynamics.
 
 ### Effort vs. Result (Wyckoff Principle)
 - **Effort:** Measured by the size of the volume bars.
@@ -578,7 +587,7 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
 
 ### Liquidity Insights with Volume
 - Watch where volume spikes occur — usually near **support/resistance, FVGs, or liquidity pools**.  
-- Institutional players create **fake breakouts** to capture liquidity — volume gives clues if they’re absorbing or pushing.
+- Institutional players create **fake breakouts** to capture liquidity — volume gives clues if they're absorbing or pushing.
 
 ### Practical Trading Ideas
 - **Accumulation Phase:** High effort with little price drop → potential long setup.
@@ -594,16 +603,12 @@ Volume is one of the clearest ways to see what the smart money is doing. But raw
 - Never trade volume alone — always analyze **effort vs. result**.  
 - Institutional activity is often revealed through **disproportionate effort**.  
 - Look for areas where volume confirms or contradicts price movement to find high-probability setups.  
-- Using volume with **liquidity concepts and FVGs** gives a complete picture of the market’s hidden order flow.
+- Using volume with **liquidity concepts and FVGs** gives a complete picture of the market's hidden order flow.
 """)
-        
         st.video("https://www.youtube.com/watch?v=4C9F9R3QK2E")
         st.video("https://www.youtube.com/watch?v=L9zKkeo3BjQ")
         st.video("https://www.youtube.com/watch?v=8F7g5yHn3h0")
-    
-    # =========================
-    # 📈 TAB 4: STRUCTURE
-    # =========================
+
     with t4:
         st.subheader("📈 Technical Market Structure (MSB)")
         st.write("""
@@ -627,9 +632,9 @@ Understanding **market structure** is essential for trading like smart money. Ma
 4. Confirm trend continuation or reversal by analyzing if **price respects or breaks structure** with confluence from liquidity zones.
 
 ### Practical Tips
-- Don’t just trade breakouts — wait for **retests after BOS/CHoCH**.
+- Don't just trade breakouts — wait for **retests after BOS/CHoCH**.
 - Align entries with **high-probability setups**: liquidity pool sweeps, reclaimed levels, and supporting volume.
-- Use MSB to **filter trades**: avoid trading against dominant structure unless there’s strong liquidity/volume evidence.
+- Use MSB to **filter trades**: avoid trading against dominant structure unless there's strong liquidity/volume evidence.
 
 ### Key Takeaways
 - Market structure identifies **trend direction and hidden liquidity targets**.
@@ -637,17 +642,13 @@ Understanding **market structure** is essential for trading like smart money. Ma
 - Always combine **MSB + FVG + Liquidity + Volume** for the most reliable setups.
 - Trading in alignment with market structure reduces risk and increases probability of success.
 """)
-        
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
 
-# =========================
-# 🧲 TAB 5: SUPPLY & DEMAND
-# =========================
-with t5:
-    st.subheader("Supply & Demand Dynamics")
-
-    st.write("""
+    # ✅ FIX: t5 is now correctly inside the "Technical Analysis" if block
+    with t5:
+        st.subheader("Supply & Demand Dynamics")
+        st.write("""
 Supply and demand are the foundation of all market movement. 
 Price moves because of an imbalance between buyers and sellers — when demand exceeds supply, price rises; when supply exceeds demand, price falls.
 
@@ -727,13 +728,13 @@ Confluences that strengthen a setup:
 - Wait for price to return into key areas  
 - Trade confirmation, not emotion
 """)
+        st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        st.video("https://www.youtube.com/watch?v=QwZT7T-TXT0")
+        st.video("https://www.youtube.com/watch?v=0kK7CFK2S8A")
+        st.video("https://www.youtube.com/watch?v=6Lx8g0P8Y8I")
 
-    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    st.video("https://www.youtube.com/watch?v=QwZT7T-TXT0")
-    st.video("https://www.youtube.com/watch?v=0kK7CFK2S8A")
-    st.video("https://www.youtube.com/watch?v=6Lx8g0P8Y8I")
 
-# --- PAGE 2: CHARTS ---
+# --- PAGE: CHARTS ---
 if page == "Charts":
     st.title("📊 Chart")
 
@@ -770,11 +771,11 @@ if page == "Charts":
     """
     components.html(chart_html, height=620)
 
-# --- PAGE 3: TOOLS ---
+
+# --- PAGE: TOOLS ---
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
 
-    # Tabs
     t_pl, t_journal, t_compound, t_dca, t_be, t_pos, t_stress, t_sentiment = st.tabs([
         "💰 P&L Calculator",
         "📊 Journal",
@@ -786,9 +787,6 @@ if page == "Tools":
         "🧠 Sentiment"
     ])
 
-    # =============================
-    # 💰 P&L CALCULATOR
-    # =============================
     with t_pl:
         st.markdown('<p class="indicator-title">💰 P&L Calculator</p>', unsafe_allow_html=True)
 
@@ -837,9 +835,6 @@ if page == "Tools":
                     else:
                         st.success("Good R:R")
 
-    # =============================
-    # 📊 JOURNAL
-    # =============================
     with t_journal:
         st.markdown('<p class="indicator-title">📊 Trade Journal</p>', unsafe_allow_html=True)
 
@@ -877,9 +872,6 @@ if page == "Tools":
             st.session_state.history = []
             st.rerun()
 
-    # =============================
-    # 🚀 COMPOUND
-    # =============================
     with t_compound:
         st.markdown('<p class="indicator-title">🚀 Compound Calculator</p>', unsafe_allow_html=True)
 
@@ -900,9 +892,6 @@ if page == "Tools":
             else:
                 st.warning("Enter valid values.")
 
-    # =============================
-    # 🎯 DCA
-    # =============================
     with t_dca:
         st.markdown('<p class="indicator-title">🎯 DCA Calculator</p>', unsafe_allow_html=True)
 
@@ -915,9 +904,6 @@ if page == "Tools":
             avg = (a1 + a2) / ((a1 / p1) + (a2 / p2))
             st.metric("Average Entry", f"${avg:,.2f}")
 
-    # =============================
-    # ⚖️ BREAKEVEN
-    # =============================
     with t_be:
         st.markdown('<p class="indicator-title">⚖️ Breakeven</p>', unsafe_allow_html=True)
 
@@ -926,9 +912,6 @@ if page == "Tools":
 
         st.metric("Breakeven Price", f"${price * (1 + (fee/100)*2):,.2f}")
 
-    # =============================
-    # 📏 POSITION SIZE
-    # =============================
     with t_pos:
         st.markdown('<p class="indicator-title">📏 Position Size</p>', unsafe_allow_html=True)
 
@@ -938,9 +921,6 @@ if page == "Tools":
 
         st.metric("Margin Used", f"${(bal * (risk/100)) / lev:,.2f}")
 
-    # =============================
-    # ⚠️ STRESS TEST
-    # =============================
     with t_stress:
         st.markdown('<p class="indicator-title">⚠️ Stress Test</p>', unsafe_allow_html=True)
 
@@ -949,8 +929,130 @@ if page == "Tools":
         st.error(f"Liquidation: {100/lev:.2f}% move")
         st.warning(f"1% move = {lev}% P&L")
 
-    # =============================
-    # 🧠 SENTIMENT
-    # =============================
     with t_sentiment:
         st.image("https://alternative.me/crypto/fear-and-greed-index.png")
+
+
+# --- PAGE: DONATE ---
+if page == "Donate":
+    st.title("💛 Support Romanstrades")
+    st.write("If this platform has helped your trading journey, consider sending a donation. Every contribution keeps this project alive and growing. Thank you! 🙏")
+    st.divider()
+
+    wallets = [
+        {
+            "label": "₿ Bitcoin (BTC)",
+            "network": "Bitcoin Network",
+            "address": "YOUR_BTC_WALLET_ADDRESS_HERE",
+            "color": "#F7931A"
+        },
+        {
+            "label": "Ξ Ethereum (ETH)",
+            "network": "ERC-20 Network",
+            "address": "YOUR_ETH_WALLET_ADDRESS_HERE",
+            "color": "#627EEA"
+        },
+        {
+            "label": "◎ Solana (SOL)",
+            "network": "Solana Network",
+            "address": "YOUR_SOL_WALLET_ADDRESS_HERE",
+            "color": "#9945FF"
+        },
+    ]
+
+    for w in wallets:
+        st.markdown(f"""
+        <div class="wallet-card" style="border-left: 4px solid {w['color']};">
+            <div class="wallet-label">{w['label']}</div>
+            <div style="color: #8B949E; font-size: 13px; margin-bottom: 10px;">Network: {w['network']}</div>
+            <div class="wallet-addr">{w['address']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.code(w["address"], language=None)
+
+    st.divider()
+    st.info("⚠️ Always double-check the wallet address and network before sending. Crypto transactions are irreversible.")
+
+
+# --- PAGE: CONTACT ---
+if page == "Contact":
+    st.title("📬 Contact & Support")
+    st.write("Have a question, suggestion, or issue? Fill out the form below and I'll get back to you as soon as possible.")
+    st.divider()
+
+    with st.form("contact_form", clear_on_submit=True):
+        st.markdown("### Submit a Ticket")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            full_name = st.text_input("Full Name *", placeholder="e.g. John Smith")
+            gmail = st.text_input("Your Gmail Address *", placeholder="yourname@gmail.com")
+
+        with col2:
+            subject = st.selectbox("Subject *", [
+                "General Question",
+                "Bug / Technical Issue",
+                "Feature Request",
+                "Indicator Question",
+                "Strategy Help",
+                "Other"
+            ])
+            urgency = st.selectbox("Priority", ["Low", "Medium", "High"])
+
+        message = st.text_area(
+            "Message *",
+            placeholder="Describe your question or issue in detail...",
+            height=180
+        )
+
+        agree = st.checkbox("I confirm this is my Gmail address and I consent to being contacted.")
+
+        submitted = st.form_submit_button("Send Ticket 🚀", use_container_width=True)
+
+        if submitted:
+            if not full_name or not gmail or not message:
+                st.error("Please fill in all required fields (Name, Gmail, and Message).")
+            elif "@gmail.com" not in gmail.lower():
+                st.error("Please enter a valid Gmail address (must contain @gmail.com).")
+            elif not agree:
+                st.error("Please check the confirmation box before submitting.")
+            else:
+                # Build mailto link
+                email_subject = f"[Crypto Mastery Ticket] {subject} — {urgency} Priority"
+                email_body = (
+                    f"Name: {full_name}\n"
+                    f"Gmail: {gmail}\n"
+                    f"Subject: {subject}\n"
+                    f"Priority: {urgency}\n\n"
+                    f"Message:\n{message}"
+                )
+                import urllib.parse
+                mailto_link = (
+                    f"mailto:romanstrades@protonmail.com"
+                    f"?subject={urllib.parse.quote(email_subject)}"
+                    f"&body={urllib.parse.quote(email_body)}"
+                )
+
+                st.success("✅ Ticket ready! Click the button below to open your email client and send.")
+                st.markdown(f"""
+                <a href="{mailto_link}" target="_blank">
+                    <button style="
+                        background-color: #238636;
+                        color: white;
+                        border: none;
+                        padding: 14px 28px;
+                        font-size: 16px;
+                        font-weight: 700;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        width: 100%;
+                        margin-top: 10px;
+                    ">
+                        📧 Open Email Client to Send
+                    </button>
+                </a>
+                """, unsafe_allow_html=True)
+
+    st.divider()
+    st.markdown("📩 You can also reach out directly at **romanstrades@protonmail.com**")
