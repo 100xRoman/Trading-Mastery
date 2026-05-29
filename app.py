@@ -437,12 +437,11 @@ if page == "Technical Analysis":
     st.header("⚙ Technical Analysis")
 
     # Define tabs here
-    t1, t2, t3, t4, t5 = st.tabs([
+    t1, t2, t3, t4 = st.tabs([
         "🏦 Liquidity", 
         "🕯️ Price Action", 
         "🌊 Volume", 
-        "📈 Structure", 
-        "🌎 Fundamental"
+        "📈 Market Structure", 
     ])
 
     # =========================
@@ -640,45 +639,6 @@ Understanding **market structure** is essential for trading like smart money. Ma
         
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
-    
-    # =========================
-    # 🌎 TAB 5: FUNDAMENTALS
-    # =========================
-    with t5:
-        st.subheader("🌎 Macro Fundamentals & DXY Correlation")
-        st.write("""
-Understanding **macro fundamentals** is crucial for anticipating market moves and aligning with smart money flows. Large institutions pay attention to global economic conditions, interest rates, and currency strength, especially the **US Dollar Index (DXY)**.
-
-### Why Macro Matters
-- Interest rate changes, central bank policies, and economic data releases influence liquidity and volatility.
-- Major macro events can **cause sudden moves**, triggering stop hunts and liquidity sweeps.
-- Aligning trades with macro context increases the probability of success and reduces risk of trading against institutional flow.
-
-### DXY Correlation
-- Many markets, especially crypto and commodities, are inversely correlated with the DXY.
-    - **DXY up → USD strengthens → risk assets (crypto, gold) often fall**
-    - **DXY down → USD weakens → risk assets often rise**
-- Monitoring DXY helps predict potential **liquidity targeting** zones, as institutional traders may rotate capital based on USD strength.
-
-### Combining Macro + Liquidity + Structure
-1. Identify **key macro events** (Fed decisions, CPI, employment reports, etc.) on your calendar.
-2. Observe **DXY movements** for trend alignment.
-3. Map **market structure and liquidity zones** in your target asset.
-4. Confirm trades with **volume and FVGs** for high-probability setups.
-
-### Practical Tips
-- Don’t trade large macro events blindly — wait for price to **react to liquidity and structure**.
-- Use DXY as a **guide**, not a sole signal; combine with liquidity analysis.
-- Historical patterns around economic releases can highlight **where liquidity pools may form**.
-
-### Key Takeaways
-- Macro fundamentals set the **context for institutional flow**.
-- DXY correlation is a powerful tool to **predict directional bias** in risk assets.
-- Combine macro analysis with liquidity, MSB, and FVGs for **well-aligned trades**.
-""")
-        
-        st.video("https://www.youtube.com/watch?v=xU1S0DxrNJM")
-        st.video("https://www.youtube.com/watch?v=8jK3dDBhK0Y")
 
 # --- PAGE 2: CHARTS ---
 if page == "Charts":
@@ -691,7 +651,6 @@ if page == "Charts":
         "S&P 500": "SPY", "AAPL": "NASDAQ:AAPL", "NVDA": "NASDAQ:NVDA"
     }
 
-    st.markdown("### 🖥️ Watchlist")
     cols = st.columns(4)
     asset_keys = list(symbol_map.keys())
 
