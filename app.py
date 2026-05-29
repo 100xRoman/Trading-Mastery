@@ -641,7 +641,6 @@ Understanding **market structure** is essential for trading like smart money. Ma
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
 
-    ```python
 # =========================
 # 🧲 TAB 5: SUPPLY & DEMAND
 # =========================
