@@ -19,7 +19,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=z3fbVK5e5Io"
     },
-
     "MACD": {
         "title": "📊 MACD (Moving Average Convergence Divergence)",
         "desc": """
@@ -31,7 +30,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=tSr6UorS9Ro"
     },
-
     "MA": {
         "title": "📊 MA (Moving Average)",
         "desc": """
@@ -43,7 +41,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=ADRTal_rWFk"
     },
-
     "FIBONACCI": {
         "title": "📐 Fibonacci Retracement",
         "desc": """
@@ -55,7 +52,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=oVMeymdZwWI"
     },
-
     "OBV": {
         "title": "📈 OBV (On-Balance Volume)",
         "desc": """
@@ -67,7 +63,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=7GsKu4DVqbQ&vl=en"
     },
-
     "ICHIMOKU CLOUD": {
         "title": "☁️ Ichimoku Cloud",
         "desc": """
@@ -79,7 +74,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=Ow0U7o5c0EM"
     },
-
     "CCI": {
         "title": "🔄 CCI (Commodity Channel Index)",
         "desc": """
@@ -91,7 +85,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=9babULjrPLE"
     },
-
     "STOCHASTIC OSCILLATOR": {
         "title": "🎢 Stochastic Oscillator",
         "desc": """
@@ -103,7 +96,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=WGLIiLU-CWE"
     },
-
     "ATR": {
         "title": "📏 ATR (Average True Range)",
         "desc": """
@@ -115,7 +107,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=NEf62LQqnQs"
     },
-
     "PARABOLIC SAR": {
         "title": "🎯 Parabolic SAR",
         "desc": """
@@ -127,7 +118,6 @@ indicators = {
     """,
         "video": "https://www.youtube.com/watch?v=sgH7zdxwwzc"
     },
-
     "KELTNER CHANNEL": {
         "title": "🏎️ Keltner Channels",
         "desc": """
@@ -144,7 +134,7 @@ indicators = {
 # --- TERMINAL CONFIG ---
 st.set_page_config(page_title="Crypto Mastery", page_icon="📈", layout="wide")
 
-# --- CUSTOM CSS (PREMIUM DARK TERMINAL) ---
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #0D1117; color: #C9D1D9; }
@@ -161,20 +151,6 @@ st.markdown("""
         padding: 20px; margin: 20px 0; border-radius: 8px; font-size: 16px; line-height: 1.6;
     }
     .sidebar-title { color: #58A6FF; font-size: 22px; font-weight: 800; text-align: center; }
-    .suggestion-btn {
-        background-color: #21262D;
-        border: 1px solid #30363D;
-        border-radius: 8px;
-        padding: 10px 16px;
-        color: #58A6FF;
-        cursor: pointer;
-        margin: 4px 0;
-        width: 100%;
-        text-align: left;
-        font-size: 15px;
-        transition: background 0.2s;
-    }
-    .suggestion-btn:hover { background-color: #30363D; }
     .wallet-card {
         background-color: #161B22;
         border: 1px solid #30363D;
@@ -199,9 +175,10 @@ st.markdown("""
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown('<p class="sidebar-title">Crypto Mastery</p>', unsafe_allow_html=True)
-    page = st.radio("MENU", ["Basics", "Technical Analysis", "Indicators", "Charts", "Tools", "Donate", "Contact"])
+    page = st.radio("MENU", ["Basics", "Technical Analysis", "Types of Trading", "Indicators", "Charts", "Tools", "Donate", "Contact"])
     st.divider()
     st.caption("℗Romanstrades")
+    st.caption("x.com/romanstrades")
 
 # --- Initialize session state ---
 if "active_video" not in st.session_state:
@@ -209,21 +186,20 @@ if "active_video" not in st.session_state:
 if "selected_indicator" not in st.session_state:
     st.session_state.selected_indicator = None
 
+
+# ============================================================
 # --- PAGE: INDICATORS ---
+# ============================================================
 if page == "Indicators":
     st.title("🧭 Indicators")
 
-    search = st.text_input(
-        "Search for an indicator...",
-        key="indicator_search",
-        placeholder="e.g. RSI, MACD, ATR..."
-    )
-
-    query = search.strip().upper()
-
-    # If a specific indicator was selected from suggestions, show it
-    if st.session_state.selected_indicator and not query:
+    # --- Browse / detail view ---
+    if st.session_state.selected_indicator:
         key = st.session_state.selected_indicator
+        if st.button("← Back to Indicators", key="back_btn"):
+            st.session_state.selected_indicator = None
+            st.rerun()
+
         if key in indicators:
             data = indicators[key]
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -231,39 +207,17 @@ if page == "Indicators":
             st.write(data["desc"])
             st.video(data["video"])
             st.markdown('</div>', unsafe_allow_html=True)
-    elif query:
-        # Find all matching indicators
-        matches = [k for k in indicators.keys() if query in k]
-
-        if len(matches) == 1 and matches[0] == query:
-            # Exact match — show directly
-            data = indicators[query]
-            st.markdown('<div class="section-card">', unsafe_allow_html=True)
-            st.markdown(f'<p class="indicator-title">{data["title"]}</p>', unsafe_allow_html=True)
-            st.write(data["desc"])
-            st.video(data["video"])
-            st.markdown('</div>', unsafe_allow_html=True)
-        elif matches:
-            st.markdown("**Suggestions — click to view:**")
-            for match in matches:
-                if st.button(f"📊 {indicators[match]['title']}", key=f"btn_{match}", use_container_width=True):
-                    st.session_state.selected_indicator = match
-                    st.rerun()
-        else:
-            st.warning("No indicators found. Try: RSI, MACD, ATR, OBV, CCI...")
     else:
-        # Show all indicators as browsable list when nothing is typed
-        st.markdown("**All Indicators — click to explore:**")
+        st.markdown("**Select an indicator to learn more:**")
         for key, data in indicators.items():
             if st.button(f"{data['title']}", key=f"browse_{key}", use_container_width=True):
                 st.session_state.selected_indicator = key
                 st.rerun()
 
-    # Reset selected indicator when user types something new
-    if query and st.session_state.selected_indicator:
-        st.session_state.selected_indicator = None
 
-
+# ============================================================
+# --- PAGE: BASICS ---
+# ============================================================
 if page == "Basics":
     st.title("🏫 Basics")
     
@@ -454,14 +408,16 @@ Losses are part of the system — not something to avoid at all costs.
 """)
 
 
+# ============================================================
 # --- PAGE: TECHNICAL ANALYSIS ---
+# ============================================================
 if page == "Technical Analysis":
     st.header("⚙ Technical Analysis")
 
     t1, t2, t3, t4, t5 = st.tabs([
-        "🏦 Liquidity", 
-        "🕯️ Price Action", 
-        "🌊 Volume", 
+        "🏦 Liquidity",
+        "🕯️ Price Action",
+        "🌊 Volume",
         "📈 Market Structure",
         "🧲 Supply and Demand"
     ])
@@ -645,9 +601,8 @@ Understanding **market structure** is essential for trading like smart money. Ma
         st.video("https://www.youtube.com/watch?v=EJ3W0fJZP1A")
         st.video("https://www.youtube.com/watch?v=6sXvMvRLF5o")
 
-    # ✅ FIX: t5 is now correctly inside the "Technical Analysis" if block
     with t5:
-        st.subheader("Supply & Demand Dynamics")
+        st.subheader("🧲 Supply & Demand Dynamics")
         st.write("""
 Supply and demand are the foundation of all market movement. 
 Price moves because of an imbalance between buyers and sellers — when demand exceeds supply, price rises; when supply exceeds demand, price falls.
@@ -734,7 +689,393 @@ Confluences that strengthen a setup:
         st.video("https://www.youtube.com/watch?v=6Lx8g0P8Y8I")
 
 
+# ============================================================
+# --- PAGE: TYPES OF TRADING ---
+# ============================================================
+if page == "Types of Trading":
+    st.header("🎯 Types of Trading")
+
+    tt1, tt2, tt3, tt4, tt5, tt6, tt7 = st.tabs([
+        "⚡ Scalping",
+        "📅 Day Trading",
+        "🌊 Swing Trading",
+        "📈 Position Trading",
+        "🤖 Algorithmic",
+        "📰 News Trading",
+        "🔄 Copy Trading"
+    ])
+
+    with tt1:
+        st.subheader("⚡ Scalping")
+        st.write("""
+Scalping is the fastest style of trading, where traders aim to profit from tiny price movements over seconds to minutes. It is one of the most demanding disciplines in the markets — requiring extreme focus, fast execution, and an almost robotic level of emotional control.
+
+### What is Scalping?
+Scalpers enter and exit dozens or even hundreds of trades per day, targeting small gains on each. The goal is not a big win on any single trade — it's consistent accumulation of small profits that add up over time.
+
+Unlike swing or position traders who can step away from the screen, scalpers are glued to real-time charts and order flow for the entire session.
+
+### Key Characteristics
+- **Timeframe:** 1-minute to 5-minute charts  
+- **Hold Time:** Seconds to a few minutes  
+- **Trade Frequency:** 10 to 100+ trades per day  
+- **Profit Target per Trade:** 0.1% to 0.5%  
+- **Risk per Trade:** Very tight stop losses — often just a few ticks
+
+### How Scalping Works
+Scalpers exploit short-term inefficiencies — tiny imbalances between buyers and sellers that create quick bursts of momentum. Common setups include:
+
+- **Bid-Ask Spread Exploitation:** Buying at the bid and selling at the ask repeatedly in liquid markets.
+- **Momentum Scalps:** Jumping into a strong directional move after a consolidation breakout and riding the first wave.
+- **Liquidity Grabs:** Waiting for a quick spike to sweep a nearby liquidity pool and fading the reversal immediately.
+- **Order Book Scalping:** Reading the live order book to see where large buy/sell walls exist and positioning ahead of them.
+
+### Requirements for Scalping
+- **Low latency execution** — every millisecond counts
+- **Tight spreads** — high fees will destroy scalping profitability
+- **High liquidity** — you need to enter and exit instantly without slippage
+- **Laser focus** — one distraction can turn a winning trade into a loss
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| Fast feedback loop | Extremely stressful |
+| Small capital needed | Fees can erode profits |
+| Many opportunities daily | Requires full-time attention |
+| No overnight risk | Mistakes happen fast |
+
+### Is Scalping Right for You?
+Scalping suits traders who thrive in fast-paced environments, can make decisions in seconds, and have the emotional resilience to shake off losses immediately. It is not suited for beginners.
+
+### Key Takeaways
+- Scalping profits from speed and volume, not size  
+- Tight risk management is absolutely critical  
+- Fees and spreads must be minimized  
+- Requires a structured, repeatable system — not gut feeling  
+- Best suited to highly liquid markets (BTC, ETH, major forex pairs)
+""")
+        st.video("https://www.youtube.com/watch?v=nS5uSDI1Uy4")
+
+    with tt2:
+        st.subheader("📅 Day Trading")
+        st.write("""
+Day trading is the practice of opening and closing all positions within the same trading day. Day traders never hold overnight, eliminating the risk of unexpected news or price gaps while the market is closed. It is one of the most popular and widely practiced trading styles.
+
+### What is Day Trading?
+Day traders work on intraday timeframes — typically 5-minute to 1-hour charts — looking for clear directional moves that can be captured and closed before the session ends. The style combines the speed of scalping with the strategic patience of swing trading.
+
+### Key Characteristics
+- **Timeframe:** 5-minute to 1-hour charts  
+- **Hold Time:** Minutes to several hours  
+- **Trade Frequency:** 2 to 10 trades per day  
+- **Profit Target per Trade:** 0.5% to 3%  
+- **Risk per Trade:** Typically 0.5% to 2% of capital
+
+### How Day Trading Works
+Day traders look for high-probability setups that align with the day's dominant trend or a clear range. Common approaches include:
+
+- **Opening Range Breakout (ORB):** Trading the breakout of the first 15-30 minutes of the session, which often sets the tone for the day.
+- **Trend Following:** Identifying the intraday trend direction and only taking trades in that direction.
+- **Reversal Trading:** Spotting exhausted moves and fading them at key support/resistance levels.
+- **News Catalysts:** Capitalizing on price moves triggered by economic data, earnings, or breaking news.
+
+### The Day Trader's Routine
+A professional day trader is not randomly trading — they follow a strict daily routine:
+
+1. **Pre-market preparation:** Review overnight price action, key levels, and news events.
+2. **Session open:** Identify the bias — bullish, bearish, or ranging.
+3. **Trade execution window:** Most opportunities occur in the first 2 hours and the last hour of the session.
+4. **Review:** Analyze trades, log results, and identify mistakes.
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| No overnight risk | Requires full-day attention |
+| Daily feedback on performance | High screen time and mental load |
+| Clear trading sessions | Tax implications in some countries |
+| Suitable for most liquid markets | Easy to overtrade |
+
+### Key Takeaways
+- Day trading requires a clear, pre-planned strategy — not improvisation  
+- Session timing matters — the best setups cluster around market opens and closes  
+- Discipline to stop trading after a loss limit is essential  
+- Most successful day traders focus on 1 to 3 specific setups they know extremely well
+""")
+        st.video("https://www.youtube.com/watch?v=mxAOUPxlqF0")
+
+    with tt3:
+        st.subheader("🌊 Swing Trading")
+        st.write("""
+Swing trading is the art of capturing medium-term price "swings" — moves that develop over days to weeks. It is widely considered the most accessible trading style for people who cannot dedicate full-time hours to watching charts, as it requires only a few hours of analysis per day.
+
+### What is Swing Trading?
+Swing traders aim to enter at the beginning of a significant price move and exit near the end before it reverses. They rely on higher-timeframe structure and key levels, using daily and 4-hour charts as their primary tools.
+
+### Key Characteristics
+- **Timeframe:** 4-hour to daily charts  
+- **Hold Time:** 2 days to several weeks  
+- **Trade Frequency:** 2 to 10 trades per month  
+- **Profit Target per Trade:** 3% to 15%+  
+- **Risk per Trade:** Typically 1% to 2% of capital
+
+### How Swing Trading Works
+Swing traders are not chasing every small move. They wait for the market to set up a high-probability scenario and then strike decisively. Core approaches include:
+
+- **Trend Pullback Entries:** Waiting for price to pull back to a key support level (EMA, demand zone, Fibonacci level) within a larger uptrend, then entering long with the trend.
+- **Breakout Swings:** Entering after price breaks through a major resistance level with strong volume, targeting the next significant resistance.
+- **Range Trading:** Buying at the low of an established range and selling at the high — repeat until the range breaks.
+- **Catalyst-Driven Swings:** Entering ahead of or just after a fundamental catalyst (earnings, protocol upgrade, macro event) that is likely to drive sustained directional movement.
+
+### The Swing Trader's Edge
+The swing trader's biggest advantage is **patience and selectivity**. They are not forced to trade every day. By waiting for only the best setups, they achieve a higher win rate and a better risk-to-reward ratio than traders who over-trade.
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| Low time commitment | Exposed to overnight and weekend gaps |
+| Better R:R ratios | Requires patience — fewer trades |
+| Less affected by noise | Positions can reverse before target |
+| Suitable for part-time traders | Needs strong conviction in thesis |
+
+### Key Takeaways
+- Swing trading rewards patience — the best setups are worth waiting for  
+- Higher timeframe structure should always guide entry timing  
+- Position sizing and stop placement are more important than entry timing  
+- Combine technical levels with market structure and volume for the highest-probability trades
+""")
+        st.video("https://www.youtube.com/watch?v=mxAOUPxlqF0")
+
+    with tt4:
+        st.subheader("📈 Position Trading")
+        st.write("""
+Position trading is the longest-term active trading style, sitting between traditional investing and swing trading. Position traders hold trades for weeks, months, or even years — riding the full length of a major market trend. It is the most patient discipline in active trading.
+
+### What is Position Trading?
+Position traders focus on the macro picture. They are not concerned with daily volatility or short-term noise — they look for major structural shifts in the market and position themselves to profit from the entire move. Think of it as "catching the full wave" rather than a ripple.
+
+### Key Characteristics
+- **Timeframe:** Weekly and monthly charts  
+- **Hold Time:** Weeks to years  
+- **Trade Frequency:** A few trades per year  
+- **Profit Target per Trade:** 20% to 500%+  
+- **Risk per Trade:** 2% to 5% of capital (wider stops, longer timeframe)
+
+### How Position Trading Works
+Position traders use a combination of fundamental and technical analysis to identify assets at a structural turning point. They then enter with wide stops and hold through volatility, trusting the macro thesis.
+
+Core approaches include:
+
+- **Macro Trend Following:** Identifying major bull or bear markets and positioning early using weekly/monthly chart breakouts.
+- **Accumulation Zone Entries:** Entering near historically significant support areas — often the same zones where institutions are quietly accumulating.
+- **Fundamental Catalyst Thesis:** A strong narrative (e.g., Bitcoin halving cycle, ETF approval, institutional adoption) drives the trade thesis and is confirmed by technical structure.
+- **Dollar-Cost Averaging (DCA) Into Positions:** Position traders often scale into positions over time rather than entering all at once.
+
+### Managing a Position Trade
+Because position trades are held for so long, management is key:
+
+- **Scale-in:** Enter in tranches as the thesis confirms.
+- **Trail your stop:** Move stop losses up as price advances to protect gains.
+- **Take partial profits:** Sell portions at key resistance levels while keeping the core position running.
+- **Review regularly:** Re-evaluate the fundamental thesis weekly/monthly. If the reason for the trade no longer exists, exit.
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| Massive potential gains | Very long time to realize profits |
+| Low time commitment | Requires high conviction and patience |
+| Rides full macro trends | Wide stops mean larger initial risk |
+| Less affected by noise | Fundamental thesis can change |
+
+### Key Takeaways
+- Position trading is about macro conviction, not short-term price action  
+- Wide stops are normal — don't let volatility shake you out of a good trade  
+- The best position trades are identified at the start of a new macro trend  
+- Fundamental understanding of the asset is just as important as technical analysis
+""")
+        st.video("https://www.youtube.com/watch?v=mxAOUPxlqF0")
+
+    with tt5:
+        st.subheader("🤖 Algorithmic Trading")
+        st.write("""
+Algorithmic trading — commonly called "algo trading" or "automated trading" — uses computer programs and pre-coded rules to execute trades automatically, without human intervention in each individual trade. It is the dominant form of trading in institutional markets and is growing rapidly in crypto.
+
+### What is Algorithmic Trading?
+Instead of manually watching charts and clicking buy/sell, an algo trader writes a program that defines exactly when, how, and at what size to enter and exit trades. The computer executes these rules at machine speed, without emotion.
+
+### Key Characteristics
+- **Timeframe:** Any — from microseconds (HFT) to daily  
+- **Hold Time:** Microseconds to weeks, depending on strategy  
+- **Trade Frequency:** Fully automated — can execute thousands of trades per day  
+- **Skills Required:** Programming (Python, C++, Pine Script), statistics, and trading knowledge
+
+### How Algorithmic Trading Works
+An algo trader builds a **strategy** — a set of rules that define:
+
+1. **Entry conditions:** e.g., "Buy when the 9 EMA crosses above the 21 EMA and RSI is below 60."
+2. **Exit conditions:** e.g., "Sell when price hits +3% from entry or crosses back below the 9 EMA."
+3. **Position sizing:** e.g., "Risk exactly 1% of capital per trade."
+4. **Risk filters:** e.g., "Do not trade if market volatility (ATR) is above X."
+
+The algorithm monitors the market 24/7 and fires trades the moment conditions are met.
+
+### Types of Algorithmic Strategies
+- **Trend Following:** Automated entry in the direction of a moving average crossover or breakout.
+- **Mean Reversion:** Identifies when price is statistically overextended from its average and bets on a return.
+- **Market Making:** Places buy and sell orders simultaneously to profit from the bid-ask spread.
+- **Arbitrage:** Exploits price differences of the same asset across different exchanges simultaneously.
+- **High-Frequency Trading (HFT):** Executes thousands of trades per second, profiting from tiny price differences at extreme speed.
+
+### Backtesting — The Foundation of Algo Trading
+Before deploying any algorithm with real money, traders **backtest** it — running the strategy against historical price data to see how it would have performed. Key metrics:
+
+- **Win Rate:** Percentage of profitable trades
+- **Sharpe Ratio:** Return relative to risk
+- **Max Drawdown:** Worst peak-to-trough loss period
+- **Expectancy:** Average profit per trade over time
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| No emotional decision-making | Requires programming skills |
+| Runs 24/7 without supervision | Overfitting risk during backtesting |
+| Executes at machine speed | Can fail catastrophically if not monitored |
+| Completely rule-based and consistent | Markets change — strategies need updating |
+
+### Key Takeaways
+- Algorithmic trading removes human emotion from execution — but adds technical complexity  
+- A strategy that backtests perfectly is not guaranteed to work live — always paper trade first  
+- Risk management rules must be hard-coded — the algorithm should never bypass them  
+- Start simple: a profitable, simple algo beats a complex one that breaks
+""")
+        st.video("https://www.youtube.com/watch?v=CpKFhPSJ0Fo")
+
+    with tt6:
+        st.subheader("📰 News Trading")
+        st.write("""
+News trading is the strategy of taking positions based on the impact of economic data releases, corporate announcements, geopolitical events, or breaking news that causes sudden, significant price movements. It is one of the most high-risk, high-reward styles of trading.
+
+### What is News Trading?
+Markets are fundamentally driven by information. When new, unexpected information hits the market — a surprise interest rate decision, a major hack, a regulatory announcement — price can move 5%, 10%, or even 50% in minutes. News traders try to be positioned for these explosive moves.
+
+### Key Characteristics
+- **Timeframe:** 1-minute to 15-minute charts (intraday reaction) or daily for longer-term repositioning  
+- **Hold Time:** Minutes to a few days  
+- **Trade Frequency:** Event-driven — trade only when a catalyst exists  
+- **Key Skill:** Speed, news interpretation, and understanding market expectations vs. reality
+
+### How News Trading Works
+The key insight in news trading is: **it's not about what the news IS — it's about what the news IS RELATIVE TO EXPECTATIONS.**
+
+If the market expects strong GDP growth and the actual number comes in even stronger, price rallies. If it comes in slightly below the already-high expectation, price can crash even if the absolute number is "good." This is the concept of **"buy the rumor, sell the news."**
+
+#### Two Main Approaches:
+
+**1. Pre-News Positioning (High Risk)**
+Taking a position before the news release based on your forecast of the outcome. This is essentially speculation on a binary event — if you're right, rewards are huge. If you're wrong, stop-outs can be severe.
+
+**2. Post-News Reaction Trading (Lower Risk)**
+Waiting for the initial volatility spike after the news release, letting the market show its true hand, then trading in the direction of the confirmed move. This avoids the chaotic "first spike" and trades the more sustainable follow-through.
+
+### Types of High-Impact News Events
+
+| Category | Examples |
+|----------|---------|
+| Macroeconomic | CPI, FOMC rate decisions, NFP, GDP |
+| Crypto-Specific | ETF approvals, exchange hacks, protocol upgrades, regulatory bans |
+| Corporate | Earnings reports, CEO resignations, partnerships |
+| Geopolitical | Wars, sanctions, political elections |
+
+### Managing Risk Around News
+- **Reduce position size** before known high-impact events — volatility spikes unpredictably.
+- **Widen stops** to account for the initial spike before true direction is established.
+- **Use limit orders** not market orders — spreads widen dramatically during news.
+- **Never trade all major news events** — only those where you have a genuine edge or thesis.
+
+### Pros and Cons
+
+| Pros | Cons |
+|------|------|
+| Explosive short-term opportunities | Unpredictable outcomes even with good analysis |
+| Clear catalyst for the move | Spreads widen and slippage is common |
+| Well-defined event timing | Requires very fast execution |
+| Can profit in any direction | "Buy the rumor, sell the news" reversals are common |
+
+### Key Takeaways
+- News trading profits from the **gap between expectation and reality** — not just the news itself  
+- The post-news reaction is often safer than pre-news speculation  
+- Always reduce size and widen stops around major events  
+- Know your catalyst calendars — economic, crypto, and geopolitical events are your map
+""")
+        st.video("https://www.youtube.com/watch?v=uUBpU5Nue6M")
+
+    with tt7:
+        st.subheader("🔄 Copy Trading")
+        st.write("""
+Copy trading is a method of trading where you automatically replicate the trades of an experienced trader in real time. It allows beginners to participate in the markets and generate returns without needing to develop their own trading skills — though it comes with its own significant risks and limitations.
+
+### What is Copy Trading?
+Copy trading platforms connect "strategy providers" (experienced traders) with "followers" (investors who copy them). When the strategy provider opens or closes a trade, the same trade is automatically mirrored in the follower's account, proportional to their allocated capital.
+
+### Key Characteristics
+- **Timeframe:** Depends entirely on the trader being copied  
+- **Skill Required:** Low for the copier — high for the provider  
+- **Capital Needed:** Usually low minimums ($100–$500 on most platforms)  
+- **Platforms:** eToro, Bybit Copy Trading, Bitget, OKX, BingX
+
+### How Copy Trading Works
+
+1. **Choose a strategy provider:** Browse ranked traders by performance metrics — ROI, win rate, drawdown, number of followers, trading style.
+2. **Allocate capital:** Decide how much of your portfolio to assign to copying this trader.
+3. **Set risk parameters:** Many platforms let you set a maximum drawdown at which the copy is automatically stopped.
+4. **Monitor:** Copy trading is not entirely passive — you should regularly review performance and be prepared to stop copying if results deteriorate.
+
+### What to Look For in a Trader to Copy
+
+| Metric | What It Tells You |
+|--------|------------------|
+| ROI (Return on Investment) | Total profit percentage over the tracked period |
+| Max Drawdown | Worst loss from peak to trough — measures risk |
+| Win Rate | Percentage of profitable trades |
+| Sharpe Ratio | Return relative to risk taken |
+| Trade History Length | Longer is more reliable — avoid traders with <3 months of data |
+| Risk Score | Platform-assigned score for overall aggressiveness |
+
+### The Hidden Risks of Copy Trading
+Copy trading appears passive and safe, but carries major risks that beginners overlook:
+
+- **Past performance is not a guarantee:** A trader with 6 months of incredible results can blow up on month 7.
+- **Drawdown is real:** If you copy a trader who enters a 40% drawdown, you lose 40% of your allocated capital.
+- **Slippage:** Your copied trade may execute at a slightly different price than the original, especially on fast moves.
+- **No learning:** Copy trading without studying *why* the trader takes positions means you never develop your own edge.
+- **Provider incentives:** Some platforms pay providers per follower, not per profit — creating conflicts of interest.
+
+### Copy Trading vs. Learning to Trade
+
+| Copy Trading | Learning to Trade |
+|-------------|------------------|
+| Immediate market participation | Takes months to years to develop |
+| No skill required | Builds a transferable, lasting skill |
+| Returns dependent on someone else | Full control of your own performance |
+| Risk of total loss if provider fails | Risk managed by your own rules |
+
+### Key Takeaways
+- Copy trading is a tool, not a strategy — always understand the risk of who you're copying  
+- Diversify across multiple traders rather than concentrating all capital on one  
+- Set a strict maximum drawdown limit and honor it  
+- Use copy trading as a way to study professional behavior — observe what they trade and why  
+- Never invest money you cannot afford to lose, even in copy trading
+""")
+        st.video("https://www.youtube.com/watch?v=CvkF5LumEgo")
+
+
+# ============================================================
 # --- PAGE: CHARTS ---
+# ============================================================
 if page == "Charts":
     st.title("📊 Chart")
 
@@ -772,7 +1113,9 @@ if page == "Charts":
     components.html(chart_html, height=620)
 
 
+# ============================================================
 # --- PAGE: TOOLS ---
+# ============================================================
 if page == "Tools":
     st.title("⚒️ Professional Trading Tools")
 
@@ -933,7 +1276,9 @@ if page == "Tools":
         st.image("https://alternative.me/crypto/fear-and-greed-index.png")
 
 
+# ============================================================
 # --- PAGE: DONATE ---
+# ============================================================
 if page == "Donate":
     st.title("💛 Support Roman's Trades")
     st.write("If this platform has helped your trading journey, consider sending a donation. Every contribution keeps this project alive and growing. Thank you! 🙏")
@@ -974,7 +1319,9 @@ if page == "Donate":
     st.info("⚠️ Always double-check the wallet address and network before sending. Crypto transactions are irreversible.")
 
 
+# ============================================================
 # --- PAGE: CONTACT ---
+# ============================================================
 if page == "Contact":
     st.title("📬 Contact & Support")
     st.write("Have a question, suggestion, or issue? Fill out the form below and I'll get back to you as soon as possible.")
@@ -1018,7 +1365,6 @@ if page == "Contact":
             elif not agree:
                 st.error("Please check the confirmation box before submitting.")
             else:
-                # Build mailto link
                 email_subject = f"[Crypto Mastery Ticket] {subject} — {urgency} Priority"
                 email_body = (
                     f"Name: {full_name}\n"
